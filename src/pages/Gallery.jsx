@@ -1,29 +1,184 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Calendar, Filter } from 'lucide-react';
+import React, { useEffect, useMemo, useState } from "react";
+import { motion } from "framer-motion";
+import { Calendar, Filter } from "lucide-react";
+import { supabase } from "../lib/supabaseClient";
 
 const Gallery = () => {
-  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedCategory, setSelectedCategory] = useState("all");
 
-  const events = [
-    { id: 1, title: 'TechSprint', category: 'Hackathon', date: 'Jan 2026', image: 'https://via.placeholder.com/400x300/EA4335/ffffff?text=TechSprint', status: 'Upcoming' },
-    { id: 2, title: 'Google Cloud Study Jams', category: 'Workshop', date: 'Oct 2025', image: 'https://via.placeholder.com/400x300/FBBC04/ffffff?text=Study+Jams', status: 'Completed' },
-    { id: 3, title: 'VividGlyph', category: 'Hackathon', date: 'Sep 2025', image: 'https://via.placeholder.com/400x300/4285F4/ffffff?text=VividGlyph', status: 'Completed' },
-    { id: 4, title: 'PromptRush 2.0', category: 'Workshop', date: 'Sep 2025', image: 'https://via.placeholder.com/400x300/FBBC04/ffffff?text=PromptRush', status: 'Completed' },
-    { id: 5, title: 'CyberVerse', category: 'Hackathon', date: 'Apr 2025', image: 'https://via.placeholder.com/400x300/9C27B0/ffffff?text=CyberVerse', status: 'Completed' },
-    { id: 6, title: 'AutoCoder 2.0', category: 'Coding', date: 'Feb 2025', image: 'https://via.placeholder.com/400x300/FF5722/ffffff?text=AutoCoder', status: 'Completed' },
-    { id: 7, title: 'AutoCoder BuildOff', category: 'Coding', date: 'Jan 2025', image: 'https://via.placeholder.com/400x300/FF9800/ffffff?text=BuildOff', status: 'Completed' },
-    { id: 8, title: 'Hack The Flag', category: 'Hackathon', date: 'Aug 2024', image: 'https://via.placeholder.com/400x300/F44336/ffffff?text=Hack+Flag', status: 'Completed' },
-    { id: 9, title: 'Debugging Showdown', category: 'Workshop', date: 'Feb 2025', image: 'https://via.placeholder.com/400x300/E91E63/ffffff?text=Debugging', status: 'Completed' },
-    { id: 10, title: 'AutoCoder Workshop', category: 'Workshop', date: 'Apr 2025', image: 'https://via.placeholder.com/400x300/3F51B5/ffffff?text=Workshop', status: 'Completed' },
-    { id: 11, title: 'HackShop', category: 'Hackathon', date: 'Nov 2024', image: 'https://via.placeholder.com/400x300/2196F3/ffffff?text=HackShop', status: 'Completed' }
-  ];
+  const fallbackEvents = useMemo(
+    () => [
+      {
+        id: 1,
+        title: "TechSprint",
+        category: "Hackathon",
+        date: "Jan 2026",
+        image:
+          "https://via.placeholder.com/400x300/EA4335/ffffff?text=TechSprint",
+        status: "Upcoming",
+      },
+      {
+        id: 2,
+        title: "Google Cloud Study Jams",
+        category: "Workshop",
+        date: "Oct 2025",
+        image:
+          "https://via.placeholder.com/400x300/FBBC04/ffffff?text=Study+Jams",
+        status: "Completed",
+      },
+      {
+        id: 3,
+        title: "VividGlyph",
+        category: "Hackathon",
+        date: "Sep 2025",
+        image:
+          "https://via.placeholder.com/400x300/4285F4/ffffff?text=VividGlyph",
+        status: "Completed",
+      },
+      {
+        id: 4,
+        title: "PromptRush 2.0",
+        category: "Workshop",
+        date: "Sep 2025",
+        image:
+          "https://via.placeholder.com/400x300/FBBC04/ffffff?text=PromptRush",
+        status: "Completed",
+      },
+      {
+        id: 5,
+        title: "CyberVerse",
+        category: "Hackathon",
+        date: "Apr 2025",
+        image:
+          "https://via.placeholder.com/400x300/9C27B0/ffffff?text=CyberVerse",
+        status: "Completed",
+      },
+      {
+        id: 6,
+        title: "AutoCoder 2.0",
+        category: "Coding",
+        date: "Feb 2025",
+        image:
+          "https://via.placeholder.com/400x300/FF5722/ffffff?text=AutoCoder",
+        status: "Completed",
+      },
+      {
+        id: 7,
+        title: "AutoCoder BuildOff",
+        category: "Coding",
+        date: "Jan 2025",
+        image:
+          "https://via.placeholder.com/400x300/FF9800/ffffff?text=BuildOff",
+        status: "Completed",
+      },
+      {
+        id: 8,
+        title: "Hack The Flag",
+        category: "Hackathon",
+        date: "Aug 2024",
+        image:
+          "https://via.placeholder.com/400x300/F44336/ffffff?text=Hack+Flag",
+        status: "Completed",
+      },
+      {
+        id: 9,
+        title: "Debugging Showdown",
+        category: "Workshop",
+        date: "Feb 2025",
+        image:
+          "https://via.placeholder.com/400x300/E91E63/ffffff?text=Debugging",
+        status: "Completed",
+      },
+      {
+        id: 10,
+        title: "AutoCoder Workshop",
+        category: "Workshop",
+        date: "Apr 2025",
+        image:
+          "https://via.placeholder.com/400x300/3F51B5/ffffff?text=Workshop",
+        status: "Completed",
+      },
+      {
+        id: 11,
+        title: "HackShop",
+        category: "Hackathon",
+        date: "Nov 2024",
+        image:
+          "https://via.placeholder.com/400x300/2196F3/ffffff?text=HackShop",
+        status: "Completed",
+      },
+    ],
+    []
+  );
 
-  const categories = ['all', 'Hackathon', 'Workshop', 'Coding'];
+  const [events, setEvents] = useState(fallbackEvents);
 
-  const filteredEvents = selectedCategory === 'all' 
-    ? events 
-    : events.filter(event => event.category === selectedCategory);
+  useEffect(() => {
+    let isMounted = true;
+
+    const load = async () => {
+      if (!supabase) return;
+
+      try {
+        const { data, error } = await supabase
+          .from("gallery_items")
+          .select("id,title,category,date,status,image_url,created_at")
+          .order("created_at", { ascending: false })
+          .limit(200);
+
+        if (error) throw error;
+
+        const mapped = (data || []).map((item) => {
+          const statusRaw = String(item.status || "").trim();
+          const statusLower = statusRaw.toLowerCase();
+          const normalizedStatus = statusLower.includes("upcoming")
+            ? "Upcoming"
+            : statusRaw
+            ? statusRaw
+            : "Completed";
+
+          return {
+            id: item.id,
+            title: item.title || "",
+            category: item.category || "Event",
+            date: item.date || "",
+            image:
+              item.image_url ||
+              "https://via.placeholder.com/400x300/4285F4/ffffff?text=Gallery",
+            status: normalizedStatus,
+          };
+        });
+
+        if (!isMounted) return;
+        if (mapped.length > 0) setEvents(mapped);
+      } catch {
+        // Keep fallback data on any error
+      }
+    };
+
+    load();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [fallbackEvents]);
+
+  const categories = useMemo(() => {
+    const base = ["all", "Hackathon", "Workshop", "Coding"];
+    const extra = Array.from(
+      new Set(
+        (events || [])
+          .map((e) => e.category)
+          .filter((c) => c && !base.includes(c))
+      )
+    );
+    return [...base, ...extra];
+  }, [events]);
+
+  const filteredEvents =
+    selectedCategory === "all"
+      ? events
+      : events.filter((event) => event.category === selectedCategory);
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900 transition-colors duration-300">
@@ -44,7 +199,8 @@ const Gallery = () => {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="text-xl text-gray-600 dark:text-gray-300"
           >
-            Explore photos and videos from our past events and community gatherings
+            Explore photos and videos from our past events and community
+            gatherings
           </motion.p>
         </div>
       </section>
@@ -52,8 +208,12 @@ const Gallery = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         {/* Event Timeline Header */}
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Event Timeline</h2>
-          <p className="text-gray-600 dark:text-gray-400">A chronological journey through our community events</p>
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
+            Event Timeline
+          </h2>
+          <p className="text-gray-600 dark:text-gray-400">
+            A chronological journey through our community events
+          </p>
         </div>
 
         {/* Category Filter */}
@@ -68,8 +228,8 @@ const Gallery = () => {
               onClick={() => setSelectedCategory(category)}
               className={`px-6 py-2 rounded-full font-medium transition-all duration-200 ${
                 selectedCategory === category
-                  ? 'bg-google-blue text-white shadow-lg'
-                  : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+                  ? "bg-google-blue text-white shadow-lg"
+                  : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
               }`}
             >
               {category.charAt(0).toUpperCase() + category.slice(1)}
@@ -96,11 +256,13 @@ const Gallery = () => {
                     className="w-full h-64 object-cover group-hover:scale-110 transition-transform duration-300"
                   />
                   <div className="absolute top-4 right-4">
-                    <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                      event.status === 'Upcoming' 
-                        ? 'bg-green-500 text-white' 
-                        : 'bg-gray-500 text-white'
-                    }`}>
+                    <span
+                      className={`px-3 py-1 rounded-full text-xs font-bold ${
+                        event.status === "Upcoming"
+                          ? "bg-green-500 text-white"
+                          : "bg-gray-500 text-white"
+                      }`}
+                    >
                       {event.status}
                     </span>
                   </div>

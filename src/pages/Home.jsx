@@ -1,22 +1,12 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { ArrowRight, Calendar, Users, BookOpen, Code2 } from 'lucide-react';
+import { ArrowRight, Calendar, Users, BookOpen, Code2, Sparkles, Zap, Globe } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { fadeInUp, staggerContainer, pageTransition, scaleIn, hoverScale } from '../utils/animations';
 
 const Home = () => {
-  const fadeInUp = {
-    initial: { opacity: 0, y: 60 },
-    animate: { opacity: 1, y: 0 },
-    transition: { duration: 0.6 }
-  };
 
-  const staggerContainer = {
-    animate: {
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  };
+
 
   const events = [
     {
@@ -73,10 +63,41 @@ const Home = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900 transition-colors duration-300">
+    <motion.div 
+      initial="initial"
+      animate="animate"
+      exit="exit"
+      variants={pageTransition}
+      className="min-h-screen bg-white dark:bg-gray-900 transition-colors duration-300 relative"
+    >
+      {/* Background Pattern */}
+      <div className="fixed inset-0 pointer-events-none opacity-30 dark:opacity-20 z-0">
+          <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] dark:bg-[radial-gradient(#374151_1px,transparent_1px)] [background-size:20px_20px]"></div>
+      </div>
+
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-white to-yellow-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 py-20 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
+      <section className="relative overflow-hidden min-h-[90vh] flex items-center bg-gradient-to-br from-blue-50/50 via-white to-yellow-50/50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-950 px-4 sm:px-6 lg:px-8 z-10">
+        {/* Animated Background Elements */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <motion.div 
+            animate={{ 
+              scale: [1, 1.2, 1],
+              rotate: [0, 90, 0],
+            }}
+            transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+            className="absolute -top-1/2 -right-1/2 w-[1000px] h-[1000px] bg-gradient-to-br from-google-blue/10 to-transparent rounded-full blur-3xl opacity-30 dark:opacity-10" 
+          />
+          <motion.div 
+            animate={{ 
+              scale: [1, 1.3, 1],
+              rotate: [0, -60, 0],
+            }}
+            transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
+            className="absolute -bottom-1/2 -left-1/2 w-[800px] h-[800px] bg-gradient-to-tr from-google-yellow/10 to-transparent rounded-full blur-3xl opacity-30 dark:opacity-10" 
+          />
+        </div>
+        
+        <div className="max-w-7xl mx-auto w-full relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             {/* Left Content */}
             <motion.div
@@ -88,11 +109,15 @@ const Home = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
-                className="inline-block mb-4"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border border-gray-100 dark:border-gray-700 shadow-sm mb-6"
               >
-                <span className="bg-blue-100 dark:bg-blue-900/30 text-google-blue px-4 py-2 rounded-full text-sm font-medium">
-                  Google Developer Group on Campus
-                </span>
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-google-green opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-google-green"></span>
+                  </span>
+                  <span className="text-sm font-semibold text-gray-800 dark:text-gray-200">
+                    Join Agra's Largest Tech Community
+                  </span>
               </motion.div>
               
               <motion.h1
@@ -138,12 +163,14 @@ const Home = () => {
                   Explore Events
                   <ArrowRight className="ml-2 w-5 h-5" />
                 </Link>
-                <Link
-                  to="/contact"
-                  className="inline-flex items-center px-6 py-3 border-2 border-google-blue text-google-blue rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors duration-200 font-medium"
+                <a
+                  href="https://gdg.community.dev"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center px-8 py-3.5 bg-white dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 font-bold"
                 >
                   Join Community
-                </Link>
+                </a>
               </motion.div>
             </motion.div>
 
@@ -225,26 +252,23 @@ const Home = () => {
           </div>
         </div>
 
-        {/* Decorative Elements */}
-        <div className="absolute top-0 right-0 w-96 h-96 bg-google-blue rounded-full filter blur-3xl opacity-10 -z-10"></div>
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-google-yellow rounded-full filter blur-3xl opacity-10 -z-10"></div>
       </section>
 
       {/* Explore Our Events */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white dark:bg-gray-900">
+      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-white dark:bg-gray-900">
         <div className="max-w-7xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="text-center mb-12"
+            className="text-center mb-16"
           >
-            <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
-              Explore Our Events
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6">
+              Explore Our <span className="text-google-blue">Events</span>
             </h2>
-            <p className="text-lg text-gray-600 dark:text-gray-400">
-              Connect with the community, learn from experts, and explore your knowledge
+            <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+              From hackathons to hands-on workshops, we host events that ignite innovation and foster collaboration.
             </p>
           </motion.div>
 
@@ -259,12 +283,19 @@ const Home = () => {
               <motion.div
                 key={event.id}
                 variants={fadeInUp}
-                whileHover={{ y: -10, transition: { duration: 0.2 } }}
-                className="relative overflow-hidden rounded-2xl shadow-lg cursor-pointer group"
+                whileHover={{ y: -10, transition: { duration: 0.3 } }}
+                className="relative overflow-hidden rounded-3xl shadow-xl shadow-gray-200/50 dark:shadow-none bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 cursor-pointer group"
               >
-                <div className={`h-48 bg-gradient-to-br ${event.color} p-6 flex items-end`}>
-                  <div className="text-white">
-                    <span className="text-sm font-medium bg-white/20 px-3 py-1 rounded-full">
+                <div className={`h-52 bg-gradient-to-br ${event.color} p-6 flex flex-col justify-end relative overflow-hidden`}>
+                   <motion.div 
+                     initial={{ rotate: 0 }}
+                     whileHover={{ rotate: 10, scale: 1.1 }}
+                     className="absolute top-0 right-0 p-6 opacity-20 transform translate-x-4 -translate-y-4"
+                   >
+                        <Calendar size={80} className="text-white" />
+                   </motion.div>
+                  <div className="text-white relative z-10">
+                    <span className="text-xs font-bold bg-white/20 backdrop-blur-md px-3 py-1 rounded-full border border-white/20">
                       {event.status}
                     </span>
                   </div>
@@ -284,6 +315,7 @@ const Home = () => {
                     View Details →
                   </button>
                 </div>
+                <div className={`h-1 w-full bg-gradient-to-r ${event.color} transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left`}></div>
               </motion.div>
             ))}
           </motion.div>
@@ -300,7 +332,7 @@ const Home = () => {
       </section>
 
       {/* About Us */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50 dark:bg-gray-800">
+      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-gray-50 dark:bg-black/20">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <motion.div
@@ -344,39 +376,47 @@ const Home = () => {
               className="grid grid-cols-2 gap-6"
             >
               <motion.div
-                whileHover={{ scale: 1.05 }}
-                className="bg-white dark:bg-gray-900 p-6 rounded-xl shadow-lg text-center"
+                whileHover={{ y: -5 }}
+                className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700"
               >
-                <Users className="w-12 h-12 text-google-blue mx-auto mb-4" />
-                <h4 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">500+</h4>
-                <p className="text-gray-600 dark:text-gray-400">Members</p>
+                <div className="w-12 h-12 bg-blue-50 dark:bg-blue-900/20 rounded-xl flex items-center justify-center mx-auto mb-4 text-google-blue">
+                     <Users className="w-6 h-6" />
+                </div>
+                <h4 className="text-4xl font-bold text-gray-900 dark:text-white mb-1">500+</h4>
+                <p className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Members</p>
               </motion.div>
               
               <motion.div
-                whileHover={{ scale: 1.05 }}
-                className="bg-white dark:bg-gray-900 p-6 rounded-xl shadow-lg text-center"
+                whileHover={{ y: -5 }}
+                className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700"
               >
-                <Calendar className="w-12 h-12 text-google-red mx-auto mb-4" />
-                <h4 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">10+</h4>
-                <p className="text-gray-600 dark:text-gray-400">Events</p>
+                 <div className="w-12 h-12 bg-red-50 dark:bg-red-900/20 rounded-xl flex items-center justify-center mx-auto mb-4 text-google-red">
+                     <Calendar className="w-6 h-6" />
+                </div>
+                <h4 className="text-4xl font-bold text-gray-900 dark:text-white mb-1">10+</h4>
+                <p className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Events</p>
               </motion.div>
               
               <motion.div
-                whileHover={{ scale: 1.05 }}
-                className="bg-white dark:bg-gray-900 p-6 rounded-xl shadow-lg text-center"
+                whileHover={{ y: -5 }}
+                className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700"
               >
-                <Code2 className="w-12 h-12 text-google-yellow mx-auto mb-4" />
-                <h4 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">5+</h4>
-                <p className="text-gray-600 dark:text-gray-400">Workshops</p>
+                 <div className="w-12 h-12 bg-yellow-50 dark:bg-yellow-900/20 rounded-xl flex items-center justify-center mx-auto mb-4 text-google-yellow">
+                     <Code2 className="w-6 h-6" />
+                </div>
+                <h4 className="text-4xl font-bold text-gray-900 dark:text-white mb-1">5+</h4>
+                <p className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Workshops</p>
               </motion.div>
               
               <motion.div
-                whileHover={{ scale: 1.05 }}
-                className="bg-white dark:bg-gray-900 p-6 rounded-xl shadow-lg text-center"
+                whileHover={{ y: -5 }}
+                className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700"
               >
-                <BookOpen className="w-12 h-12 text-google-green mx-auto mb-4" />
-                <h4 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">2+</h4>
-                <p className="text-gray-600 dark:text-gray-400">Hackathons</p>
+                 <div className="w-12 h-12 bg-green-50 dark:bg-green-900/20 rounded-xl flex items-center justify-center mx-auto mb-4 text-google-green">
+                     <BookOpen className="w-6 h-6" />
+                </div>
+                <h4 className="text-4xl font-bold text-gray-900 dark:text-white mb-1">2+</h4>
+                <p className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Hackathons</p>
               </motion.div>
             </motion.div>
           </div>
@@ -409,16 +449,18 @@ const Home = () => {
               <motion.div
                 key={index}
                 variants={fadeInUp}
-                whileHover={{ y: -10, transition: { duration: 0.2 } }}
-                className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg border-t-4 border-transparent hover:border-google-blue transition-all duration-300"
+                whileHover={{ y: -15 }}
+                className="bg-white dark:bg-gray-800 p-8 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-lg hover:shadow-2xl transition-all duration-300 group relative overflow-hidden"
               >
-                <div className={`${area.color} w-16 h-16 rounded-lg flex items-center justify-center text-white mb-4`}>
+                <div className="absolute top-0 left-0 w-2 h-full bg-gradient-to-b from-google-blue to-google-purple opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                
+                <div className={`${area.color} w-16 h-16 rounded-2xl flex items-center justify-center text-white mb-6 transform group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 shadow-md`}>
                   {area.icon}
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 group-hover:text-google-blue transition-colors">
                   {area.title}
                 </h3>
-                <p className="text-gray-600 dark:text-gray-400">
+                <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
                   {area.description}
                 </p>
               </motion.div>
@@ -426,7 +468,7 @@ const Home = () => {
           </motion.div>
         </div>
       </section>
-    </div>
+    </motion.div>
   );
 };
 
