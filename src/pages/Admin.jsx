@@ -121,6 +121,8 @@ const Admin = () => {
           supabase
             .from("members")
             .select("*")
+            .order("is_active", { ascending: false })
+            .order("display_order", { ascending: true })
             .order("created_at", { ascending: false })
         );
       }
@@ -230,6 +232,27 @@ const Admin = () => {
         p_is_active: data.is_active
       });
       if (error) alert(`Error: ${error.message}`);
+    } else if (table === 'members') {
+      // Special handling for members table using RPC
+      const { data: newMember, error } = await supabase.rpc('add_member', {
+        p_name: data.name,
+        p_email: data.email,
+        p_team_name: data.team_name,
+        p_position: data.position,
+        p_bio: data.bio || null,
+        p_profile_image_url: data.profile_image_url || null,
+        p_linkedin_url: data.linkedin_url || null,
+        p_github_url: data.github_url || null,
+        p_x_url: data.x_url || null,
+        p_display_order: data.display_order || 0
+      });
+      if (error) {
+        alert(`Error: ${error.message}`);
+        await refreshAll();
+        return null;
+      }
+      await refreshAll();
+      return newMember; // Return the created member for image upload
     } else {
       const { error } = await supabase.from(table).insert({
         ...data,
@@ -256,6 +279,22 @@ const Admin = () => {
         p_is_active: data.is_active
       });
       if (error) alert(`Error: ${error.message}`);
+    } else if (table === 'members') {
+      // Special handling for members table using RPC
+      const { error } = await supabase.rpc('update_member', {
+        p_member_id: id,
+        p_name: data.name,
+        p_email: data.email,
+        p_team_name: data.team_name,
+        p_position: data.position,
+        p_bio: data.bio || null,
+        p_profile_image_url: data.profile_image_url || null,
+        p_linkedin_url: data.linkedin_url || null,
+        p_github_url: data.github_url || null,
+        p_x_url: data.x_url || null,
+        p_display_order: data.display_order || 0
+      });
+      if (error) alert(`Error: ${error.message}`);
     } else {
       const { error } = await supabase.from(table).update(data).eq("id", id);
       if (error) alert(`Error: ${error.message}`);
@@ -272,6 +311,12 @@ const Admin = () => {
     if (table === 'admins') {
       const { error } = await supabase.rpc('delete_admin', {
         p_admin_id: id
+      });
+      if (error) alert(`Error: ${error.message}`);
+    } else if (table === 'members') {
+      // Special handling for members table using RPC
+      const { error } = await supabase.rpc('delete_member', {
+        p_member_id: id
       });
       if (error) alert(`Error: ${error.message}`);
     } else {
