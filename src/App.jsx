@@ -12,6 +12,7 @@ import Resources from './pages/Resources';
 import Blog from './pages/Blog';
 import Contact from './pages/Contact';
 import Admin from './pages/Admin';
+import Builder from './pages/Builder';
 
 function App() {
   return (
@@ -30,6 +31,7 @@ function App() {
               <Route path="/blog" element={<Blog />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/admin" element={<Admin />} />
+              <Route path="/builder" element={<Builder />} />
             </Routes>
           </main>
           <Footer />
