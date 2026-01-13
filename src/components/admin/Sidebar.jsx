@@ -7,18 +7,50 @@ import {
   Image,
   LogOut,
   X,
-  Settings
+  Settings,
+  Shield,
+  FolderOpen
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useAdmin } from "../../context/AdminContext";
 
 const Sidebar = ({ activeTab, setActiveTab, onLogout, isOpen, setIsOpen }) => {
+  const { admin, hasAccess } = useAdmin();
+  
+  // Build menu items based on admin access
   const menuItems = [
-    { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, color: "sharda-blue" },
-    { id: "events", label: "Events", icon: Calendar, color: "sharda-red" },
-    { id: "members", label: "Members", icon: Users, color: "sharda-yellow" },
-    { id: "blog", label: "Blog Posts", icon: BookOpen, color: "sharda-green" },
-    { id: "gallery", label: "Gallery", icon: Image, color: "sharda-blue" },
+    { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, color: "sharda-blue", show: true },
   ];
+
+  // Add admins tab only for super_admin
+  if (hasAccess('admins')) {
+    menuItems.push({ id: "admins", label: "Admins", icon: Shield, color: "sharda-red", show: true });
+  }
+
+  // Add events tab for super_admin and admin
+  if (hasAccess('events')) {
+    menuItems.push({ id: "events", label: "Events", icon: Calendar, color: "sharda-red", show: true });
+  }
+
+  // Add members tab only for super_admin
+  if (hasAccess('members')) {
+    menuItems.push({ id: "members", label: "Members", icon: Users, color: "sharda-yellow", show: true });
+  }
+
+  // Add blog tab for all admins
+  if (hasAccess('blogs')) {
+    menuItems.push({ id: "blog", label: "Blog Posts", icon: BookOpen, color: "sharda-green", show: true });
+  }
+
+  // Add gallery tab for super_admin and admin
+  if (hasAccess('gallery')) {
+    menuItems.push({ id: "gallery", label: "Gallery", icon: Image, color: "sharda-blue", show: true });
+  }
+
+  // Add resources tab for all admins
+  if (hasAccess('resources')) {
+    menuItems.push({ id: "resources", label: "Resources", icon: FolderOpen, color: "sharda-yellow", show: true });
+  }
 
   const getColorClasses = (color) => {
     const map = {
@@ -43,21 +75,23 @@ const Sidebar = ({ activeTab, setActiveTab, onLogout, isOpen, setIsOpen }) => {
   };
 
   const sidebarContent = (
-    <div className="flex flex-col h-full bg-white/80 dark:bg-gray-900/90 backdrop-blur-xl shadow-2xl border-r border-gray-100 dark:border-gray-700 relative overflow-hidden">
+    <div className="flex flex-col h-full bg-white dark:bg-gray-900 shadow-2xl border-r border-gray-100 dark:border-gray-700 relative">
       {/* Background Decor */}
       <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-sharda-blue/10 to-transparent pointer-events-none"></div>
 
-      <div className="p-8 flex items-center justify-between relative z-10">
+      <div className="p-8 flex items-center justify-between relative z-20 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-sharda-blue to-sharda-red flex items-center justify-center shadow-lg shadow-sharda-blue/30">
-            <span className="text-white font-bold text-2xl">A</span>
+            <span className="text-white font-bold text-xl">
+              {admin?.admin_name?.charAt(0).toUpperCase() || 'A'}
+            </span>
           </div>
           <div>
-            <span className="text-xl font-bold text-gray-900 dark:text-white tracking-tight block leading-none">
-              Admin
+            <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide block leading-none mb-1">
+              {admin?.admin_type === 'super_admin' ? 'Super Admin' : admin?.admin_type === 'admin' ? 'Admin' : 'Content Admin'}
             </span>
-            <span className="text-xs font-bold text-sharda-yellow tracking-widest uppercase">
-              Panel
+            <span className="text-sm font-bold text-gray-900 dark:text-white tracking-tight block leading-none">
+              {admin?.admin_name || 'Admin'}
             </span>
           </div>
         </div>
@@ -69,7 +103,7 @@ const Sidebar = ({ activeTab, setActiveTab, onLogout, isOpen, setIsOpen }) => {
         </button>
       </div>
 
-      <nav className="flex-1 px-4 space-y-2 overflow-y-auto py-4 relative z-10">
+      <nav className="flex-1 px-4 space-y-2 overflow-y-auto py-4 relative z-10 bg-white dark:bg-gray-900">
         <p className="px-4 text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Menu</p>
         {menuItems.map((item) => {
           const Icon = item.icon;
@@ -149,12 +183,12 @@ const Sidebar = ({ activeTab, setActiveTab, onLogout, isOpen, setIsOpen }) => {
         initial={false}
         animate={{ x: isOpen ? 0 : "-100%" }}
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
-        className="fixed inset-y-0 left-0 z-50 w-80 lg:hidden"
+        className="fixed top-[72px] bottom-0 left-0 z-50 w-80 lg:hidden"
       >
         {sidebarContent}
       </motion.aside>
 
-      <aside className="hidden lg:block w-80 fixed inset-y-0 left-0 z-30">
+      <aside className="hidden lg:block w-80 fixed top-[72px] bottom-0 left-0 z-40">
         {sidebarContent}
       </aside>
     </>

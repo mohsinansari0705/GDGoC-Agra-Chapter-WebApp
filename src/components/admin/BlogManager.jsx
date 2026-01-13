@@ -75,7 +75,7 @@ const BlogManager = ({ posts, onCreate, onEdit, onDelete, isLoading }) => {
                             placeholder="Enter a catchy title..."
                             value={formData.title}
                             onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                            className="w-full px-5 py-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 outline-none focus:ring-4 focus:ring-yellow-500/10 focus:border-yellow-500 transition-all font-bold text-lg"
+                            className="w-full px-5 py-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 text-gray-900 dark:text-white outline-none focus:ring-4 focus:ring-yellow-500/10 focus:border-yellow-500 transition-all font-bold text-lg"
                         />
                     </div>
 
@@ -85,7 +85,7 @@ const BlogManager = ({ posts, onCreate, onEdit, onDelete, isLoading }) => {
                             <select
                                 value={formData.status}
                                 onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                                className="w-full px-5 py-3.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 outline-none focus:border-yellow-500 appearance-none font-medium"
+                                className="w-full px-5 py-3.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 text-gray-900 dark:text-white outline-none focus:border-yellow-500 appearance-none font-medium"
                             >
                                 <option value="draft">Draft</option>
                                 <option value="published">Published</option>
@@ -100,7 +100,7 @@ const BlogManager = ({ posts, onCreate, onEdit, onDelete, isLoading }) => {
                             placeholder="e.g. Web Development"
                             value={formData.category}
                             onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                            className="w-full px-5 py-3.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 outline-none focus:border-yellow-500"
+                            className="w-full px-5 py-3.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 text-gray-900 dark:text-white outline-none focus:border-yellow-500"
                         />
                     </div>
 
@@ -110,7 +110,7 @@ const BlogManager = ({ posts, onCreate, onEdit, onDelete, isLoading }) => {
                             placeholder="e.g. Jane Doe"
                             value={formData.author}
                             onChange={(e) => setFormData({ ...formData, author: e.target.value })}
-                            className="w-full px-5 py-3.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 outline-none focus:border-yellow-500"
+                            className="w-full px-5 py-3.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 text-gray-900 dark:text-white outline-none focus:border-yellow-500"
                         />
                     </div>
 
@@ -120,7 +120,7 @@ const BlogManager = ({ posts, onCreate, onEdit, onDelete, isLoading }) => {
                             placeholder="e.g. Apr 23, 2025"
                             value={formData.date}
                             onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                            className="w-full px-5 py-3.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 outline-none focus:border-yellow-500"
+                            className="w-full px-5 py-3.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 text-gray-900 dark:text-white outline-none focus:border-yellow-500"
                         />
                     </div>
 
@@ -130,7 +130,7 @@ const BlogManager = ({ posts, onCreate, onEdit, onDelete, isLoading }) => {
                             placeholder="https://"
                             value={formData.image_url}
                             onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                            className="w-full px-5 py-3.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 outline-none focus:border-yellow-500"
+                            className="w-full px-5 py-3.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 text-gray-900 dark:text-white outline-none focus:border-yellow-500"
                         />
                     </div>
 
@@ -140,7 +140,7 @@ const BlogManager = ({ posts, onCreate, onEdit, onDelete, isLoading }) => {
                             placeholder="Brief summary of the post..."
                             value={formData.excerpt}
                             onChange={(e) => setFormData({ ...formData, excerpt: e.target.value })}
-                            className="w-full px-5 py-3.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 outline-none focus:border-yellow-500 min-h-[100px]"
+                            className="w-full px-5 py-3.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 text-gray-900 dark:text-white outline-none focus:border-yellow-500 min-h-[100px]"
                         />
                     </div>
                  </div>

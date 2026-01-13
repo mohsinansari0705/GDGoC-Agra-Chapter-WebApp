@@ -77,7 +77,7 @@ const GalleryManager = ({ galleryItems, onCreate, onEdit, onDelete, isLoading })
                             placeholder="e.g. Winners of Hackathon 2025"
                             value={formData.title}
                             onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                            className="w-full px-5 py-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 outline-none focus:ring-4 focus:ring-green-500/10 focus:border-green-500 transition-all font-bold text-lg"
+                            className="w-full px-5 py-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 text-gray-900 dark:text-white outline-none focus:ring-4 focus:ring-green-500/10 focus:border-green-500 transition-all font-bold text-lg"
                         />
                     </div>
                     
@@ -92,7 +92,7 @@ const GalleryManager = ({ galleryItems, onCreate, onEdit, onDelete, isLoading })
                                 placeholder="https://"
                                 value={formData.image_url}
                                 onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                                className="flex-1 px-5 py-3.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 outline-none focus:border-green-500"
+                                className="flex-1 px-5 py-3.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 text-gray-900 dark:text-white outline-none focus:border-green-500"
                             />
                         </div>
                     </div>
@@ -103,7 +103,7 @@ const GalleryManager = ({ galleryItems, onCreate, onEdit, onDelete, isLoading })
                             <select
                                 value={formData.category}
                                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                                className="w-full px-5 py-3.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 outline-none focus:border-green-500 appearance-none font-medium"
+                                className="w-full px-5 py-3.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 text-gray-900 dark:text-white outline-none focus:border-green-500 appearance-none font-medium"
                             >
                                 <option value="Hackathon">Hackathon</option>
                                 <option value="Workshop">Workshop</option>
@@ -119,7 +119,7 @@ const GalleryManager = ({ galleryItems, onCreate, onEdit, onDelete, isLoading })
                             placeholder="e.g. Jan 2025"
                             value={formData.date}
                             onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                            className="w-full px-5 py-3.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 outline-none focus:border-green-500"
+                            className="w-full px-5 py-3.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 text-gray-900 dark:text-white outline-none focus:border-green-500"
                         />
                     </div>
                 </div>

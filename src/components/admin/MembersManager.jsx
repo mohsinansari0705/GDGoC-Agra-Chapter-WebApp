@@ -147,7 +147,7 @@ const MemberCardEditor = ({
             placeholder={`e.g. John Doe`}
             value={data[`${prefix}`] || ""}
             onChange={(e) => onChange(prefix, e.target.value)}
-            className={`w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-900/50 outline-none ${themeFocus[themeKey]} transition-all font-medium`}
+            className={`w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-900/50 text-gray-900 dark:text-white outline-none ${themeFocus[themeKey]} transition-all font-medium`}
           />
         </div>
         <div className="md:col-span-2">
@@ -172,7 +172,7 @@ const MemberCardEditor = ({
               placeholder="Image URL (https://...)"
               value={data[`${prefix}_image_url`] || ""}
               onChange={(e) => onChange(`${prefix}_image_url`, e.target.value)}
-              className={`flex-1 px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-900/50 outline-none ${themeFocus[themeKey]} transition-all text-sm`}
+              className={`flex-1 px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-900/50 text-gray-900 dark:text-white outline-none ${themeFocus[themeKey]} transition-all text-sm`}
             />
           </div>
           <p className="text-[10px] text-gray-400 mt-1 ml-1">
@@ -324,7 +324,7 @@ const MemberForm = ({
               placeholder="e.g. Technical Team, Design Wing, Core Team"
               value={data.team_name || data.name || ""}
               onChange={(e) => onChange({ ...data, team_name: e.target.value })}
-              className="w-full px-5 py-4 rounded-2xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 outline-none focus:ring-4 focus:ring-sharda-blue/10 focus:border-sharda-blue transition-all text-lg font-medium"
+              className="w-full px-5 py-4 rounded-2xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 text-gray-900 dark:text-white outline-none focus:ring-4 focus:ring-sharda-blue/10 focus:border-sharda-blue transition-all text-lg font-medium"
             />
             <p className="text-xs text-gray-400 mt-2 ml-1">
               This will display as the main header for this group of members.
@@ -425,7 +425,7 @@ const MemberForm = ({
                       onChange={(e) =>
                         handleExecChange(index, "name", e.target.value)
                       }
-                      className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 outline-none focus:border-green-500 focus:ring-4 focus:ring-green-500/10 transition-all text-sm font-medium"
+                      className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white outline-none focus:border-green-500 focus:ring-4 focus:ring-green-500/10 transition-all text-sm font-medium"
                     />
                   </div>
                   <div className="flex-1">
@@ -435,7 +435,7 @@ const MemberForm = ({
                       onChange={(e) =>
                         handleExecChange(index, "image_url", e.target.value)
                       }
-                      className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 outline-none focus:border-green-500 focus:ring-4 focus:ring-green-500/10 transition-all text-sm text-gray-500"
+                      className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white outline-none focus:border-green-500 focus:ring-4 focus:ring-green-500/10 transition-all text-sm"
                     />
                   </div>
                 </div>
@@ -448,7 +448,7 @@ const MemberForm = ({
                     onChange={(e) =>
                       handleExecChange(index, "linkedin_url", e.target.value)
                     }
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all text-sm"
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all text-sm"
                   />
                 </div>
                 <div className="relative">
@@ -459,7 +459,7 @@ const MemberForm = ({
                     onChange={(e) =>
                       handleExecChange(index, "github_url", e.target.value)
                     }
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 outline-none focus:border-gray-500 focus:ring-4 focus:ring-gray-500/10 transition-all text-sm"
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white outline-none focus:border-gray-500 focus:ring-4 focus:ring-gray-500/10 transition-all text-sm"
                   />
                 </div>
               </div>
