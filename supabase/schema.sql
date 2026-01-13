@@ -114,6 +114,7 @@ create table if not exists public.members (
   linkedin_url text,
   github_url text,
   x_url text,
+  instagram_url text,
   bio text,
   team_name text not null check (team_name in (
     'Lead Organizer',

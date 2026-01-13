@@ -342,7 +342,8 @@ returns table(
   profile_image_url text,
   linkedin_url text,
   github_url text,
-  twitter_url text,
+  x_url text,
+  instagram_url text,
   bio text,
   team_name text,
   "position" text,
@@ -358,7 +359,8 @@ begin
     m.profile_image_url,
     m.linkedin_url,
     m.github_url,
-    m.twitter_url,
+    m.x_url,
+    m.instagram_url,
     m.bio,
     m.team_name,
     m."position",
@@ -401,7 +403,8 @@ create or replace function public.add_member(
   p_profile_image_url text,
   p_linkedin_url text,
   p_github_url text,
-  p_twitter_url text,
+  p_x_url text,
+  p_instagram_url text,
   p_bio text,
   p_team_name text,
   p_position text,
@@ -425,12 +428,12 @@ begin
   -- Insert new member
   insert into public.members (
     name, email, profile_image_url, linkedin_url, github_url, 
-    twitter_url, bio, team_name, position, display_order, 
+    x_url, instagram_url, bio, team_name, position, display_order, 
     is_active, created_by
   )
   values (
     p_name, p_email, p_profile_image_url, p_linkedin_url, p_github_url,
-    p_twitter_url, p_bio, p_team_name, p_position, p_display_order,
+    p_x_url, p_instagram_url, p_bio, p_team_name, p_position, p_display_order,
     true, current_admin_id
   )
   returning id into new_member_id;
@@ -447,7 +450,8 @@ create or replace function public.update_member(
   p_profile_image_url text,
   p_linkedin_url text,
   p_github_url text,
-  p_twitter_url text,
+  p_x_url text,
+  p_instagram_url text,
   p_bio text,
   p_team_name text,
   p_position text,
@@ -469,7 +473,8 @@ begin
     profile_image_url = p_profile_image_url,
     linkedin_url = p_linkedin_url,
     github_url = p_github_url,
-    twitter_url = p_twitter_url,
+    x_url = p_x_url,
+    instagram_url = p_instagram_url,
     bio = p_bio,
     team_name = p_team_name,
     position = p_position,
@@ -524,7 +529,8 @@ returns table(
   profile_image_url text,
   linkedin_url text,
   github_url text,
-  twitter_url text,
+  x_url text,
+  instagram_url text,
   bio text,
   team_name text,
   "position" text,
@@ -534,7 +540,7 @@ begin
   return query
   select 
     m.id, m.name, m.email, m.profile_image_url,
-    m.linkedin_url, m.github_url, m.twitter_url,
+    m.linkedin_url, m.github_url, m.x_url, m.instagram_url,
     m.bio, m.team_name, m."position", m.display_order
   from public.members m
   where m.team_name = p_team_name
