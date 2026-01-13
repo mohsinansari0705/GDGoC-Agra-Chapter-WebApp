@@ -1,54 +1,91 @@
--- Minimal schema for the Admin dashboard
--- Run this in Supabase: SQL Editor → New query
+-- ==========================================================================
+-- ADMIN SYSTEM
+-- ==========================================================================
 
--- Required extension for gen_random_uuid()
-create extension if not exists pgcrypto;
+-- Admins table for managing GDGoC admin access
+create table if not exists public.admins (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users(id) on delete cascade unique,
+  admin_name text not null,
+  email text unique not null,
+  admin_type text not null check (admin_type in ('super_admin', 'admin', 'least_access_admin')),
+  team_name text check (team_name in ('Technical Team', 'Events & Operations Team', 'PR & Outreach Team', 'Social Media & Content Team', 'Design & Editing Team', 'Disciplinary Committee')),
+  admin_position text check (admin_position in ('head', 'co-head', 'executive')),
+  is_active boolean default true,
+  created_at timestamptz not null default now(),
+  created_by uuid references public.admins(id),
+  updated_at timestamptz default now()
+);
+-- Indexes for admins table
+create index if not exists idx_admins_user_id on public.admins(user_id);
+create index if not exists idx_admins_email on public.admins(email);
+create index if not exists idx_admins_type on public.admins(admin_type);
+create index if not exists idx_admins_active on public.admins(is_active) where is_active = true;
 
--- EVENTS
+
+-- ============================================================================
+-- EVENTS TABLES
+-- ============================================================================
+
+-- 1. events table (main event data)
 create table if not exists public.events (
   id uuid primary key default gen_random_uuid(),
   title text not null,
-  category text,
-  status text,
+  slug text unique,
+  category text check (category in ('workshop', 'hackathon', 'meetup', 'conference', 'webinar', 'competition', 'other')),
+  status text not null default 'upcoming' check (status in ('upcoming', 'live', 'completed', 'cancelled')),
   description text,
-  date text,
-  end_date text,
-  time text,
+  date date,
+  end_date date,
+  time time,
   location text,
-  participants text,
-  image_url text,
+  cover_image_url text,
+  banner_image_url text,
   registration_link text,
   color text,
+  featured boolean default false,
+  tags text[],
   created_at timestamptz not null default now(),
-  created_by uuid not null
+  created_by uuid references public.admins(id) not null,
+  updated_at timestamptz default now()
 );
+-- Indexes for events table
+create index if not exists idx_events_status on public.events(status);
+create index if not exists idx_events_date on public.events(date);
+create index if not exists idx_events_category on public.events(category);
+create index if not exists idx_events_featured on public.events(featured) where featured = true;
+create index if not exists idx_events_slug on public.events(slug);
 
--- EVENT INNER DATA
--- Timeline/Schedule items (used by event detail page)
+-- 2. events_timeline_items table (used by event detail page)
 create table if not exists public.event_timeline_items (
   id uuid primary key default gen_random_uuid(),
   event_id uuid not null references public.events(id) on delete cascade,
   title text not null,
-  date text,
-  time text,
+  date date,
+  time time,
   description text,
   label text,
-  order_index int,
+  order_index int not null default 0,
   created_at timestamptz not null default now(),
-  created_by uuid not null
+  created_by uuid references public.admins(id) not null
 );
+-- Index for timeline items
+create index if not exists idx_timeline_event_id on public.event_timeline_items(event_id);
+create index if not exists idx_timeline_order on public.event_timeline_items(event_id, order_index);
 
--- Themes / Problem statements
+-- 3. events_themes table (problem statements)
 create table if not exists public.event_themes (
   id uuid primary key default gen_random_uuid(),
   event_id uuid not null references public.events(id) on delete cascade,
   theme text not null,
-  order_index int,
+  order_index int not null default 0,
   created_at timestamptz not null default now(),
-  created_by uuid not null
+  created_by uuid references public.admins(id) not null
 );
+-- Index for themes
+create index if not exists idx_themes_event_id on public.event_themes(event_id);
 
--- Prizes & awards
+-- 4. event_prizes table (prizes & awards)
 create table if not exists public.event_prizes (
   id uuid primary key default gen_random_uuid(),
   event_id uuid not null references public.events(id) on delete cascade,
@@ -56,12 +93,16 @@ create table if not exists public.event_prizes (
   amount text,
   description text,
   icon text,
-  order_index int,
+  order_index int not null default 0,
   created_at timestamptz not null default now(),
-  created_by uuid not null
+  created_by uuid references public.admins(id) not null
 );
+-- Index for prizes
+create index if not exists idx_prizes_event_id on public.event_prizes(event_id);
 
--- MEMBERS
+
+
+-- 5. members table (team members and executives)
 create table if not exists public.members (
   id uuid primary key default gen_random_uuid(),
   name text not null,
@@ -117,7 +158,7 @@ create table if not exists public.members (
   executive_8_github_url text,
   executive_8_twitter_url text,
   created_at timestamptz not null default now(),
-  created_by uuid not null
+  created_by uuid references public.admins(id) not null
 );
 
 -- BLOG POSTS
@@ -132,7 +173,7 @@ create table if not exists public.blog_posts (
   read_time text,
   status text not null default 'draft',
   created_at timestamptz not null default now(),
-  created_by uuid not null
+  created_by uuid references public.admins(id) not null
 );
 
 -- GALLERY ITEMS
@@ -144,7 +185,7 @@ create table if not exists public.gallery_items (
   status text,
   image_url text,
   created_at timestamptz not null default now(),
-  created_by uuid not null
+  created_by uuid references public.admins(id) not null
 );
 
 -- RESOURCES (community submitted)
@@ -155,378 +196,6 @@ create table if not exists public.resources (
   category text,
   type text,
   description text,
-  created_at timestamptz not null default now()
+  created_at timestamptz not null default now(),
+  created_by uuid references public.admins(id)
 );
-
--- MIGRATIONS (if you already created tables earlier)
--- Ensures required columns exist even when the table already existed.
-alter table public.events add column if not exists title text;
-alter table public.events add column if not exists category text;
-alter table public.events add column if not exists status text;
-alter table public.events add column if not exists description text;
-alter table public.events add column if not exists date text;
-alter table public.events add column if not exists end_date text;
-alter table public.events add column if not exists time text;
-alter table public.events add column if not exists location text;
-alter table public.events add column if not exists participants text;
-alter table public.events add column if not exists image_url text;
-alter table public.events add column if not exists registration_link text;
-alter table public.events add column if not exists color text;
-alter table public.events add column if not exists created_at timestamptz;
-alter table public.events add column if not exists created_by uuid;
-
--- Inner data migrations (safe no-ops when tables already exist)
-alter table public.event_timeline_items add column if not exists event_id uuid;
-alter table public.event_timeline_items add column if not exists title text;
-alter table public.event_timeline_items add column if not exists date text;
-alter table public.event_timeline_items add column if not exists time text;
-alter table public.event_timeline_items add column if not exists description text;
-alter table public.event_timeline_items add column if not exists label text;
-alter table public.event_timeline_items add column if not exists order_index int;
-alter table public.event_timeline_items add column if not exists created_at timestamptz;
-alter table public.event_timeline_items add column if not exists created_by uuid;
-
-alter table public.event_themes add column if not exists event_id uuid;
-alter table public.event_themes add column if not exists theme text;
-alter table public.event_themes add column if not exists order_index int;
-alter table public.event_themes add column if not exists created_at timestamptz;
-alter table public.event_themes add column if not exists created_by uuid;
-
-alter table public.event_prizes add column if not exists event_id uuid;
-alter table public.event_prizes add column if not exists position text;
-alter table public.event_prizes add column if not exists amount text;
-alter table public.event_prizes add column if not exists description text;
-alter table public.event_prizes add column if not exists icon text;
-alter table public.event_prizes add column if not exists order_index int;
-alter table public.event_prizes add column if not exists created_at timestamptz;
-alter table public.event_prizes add column if not exists created_by uuid;
-
-alter table public.members add column if not exists name text;
-alter table public.members add column if not exists team_name text;
-alter table public.members add column if not exists team_head text;
-alter table public.members add column if not exists team_head_image_url text;
-alter table public.members add column if not exists team_head_linkedin_url text;
-alter table public.members add column if not exists team_head_github_url text;
-alter table public.members add column if not exists team_head_twitter_url text;
-alter table public.members add column if not exists team_co_head text;
-alter table public.members add column if not exists team_co_head_image_url text;
-alter table public.members add column if not exists team_co_head_linkedin_url text;
-alter table public.members add column if not exists team_co_head_github_url text;
-alter table public.members add column if not exists team_co_head_twitter_url text;
-alter table public.members add column if not exists executive_1 text;
-alter table public.members add column if not exists executive_1_image_url text;
-alter table public.members add column if not exists executive_1_linkedin_url text;
-alter table public.members add column if not exists executive_1_github_url text;
-alter table public.members add column if not exists executive_1_twitter_url text;
-alter table public.members add column if not exists executive_2 text;
-alter table public.members add column if not exists executive_2_image_url text;
-alter table public.members add column if not exists executive_2_linkedin_url text;
-alter table public.members add column if not exists executive_2_github_url text;
-alter table public.members add column if not exists executive_2_twitter_url text;
-alter table public.members add column if not exists executive_3 text;
-alter table public.members add column if not exists executive_3_image_url text;
-alter table public.members add column if not exists executive_3_linkedin_url text;
-alter table public.members add column if not exists executive_3_github_url text;
-alter table public.members add column if not exists executive_3_twitter_url text;
-alter table public.members add column if not exists executive_4 text;
-alter table public.members add column if not exists executive_4_image_url text;
-alter table public.members add column if not exists executive_4_linkedin_url text;
-alter table public.members add column if not exists executive_4_github_url text;
-alter table public.members add column if not exists executive_4_twitter_url text;
-alter table public.members add column if not exists executive_5 text;
-alter table public.members add column if not exists executive_5_image_url text;
-alter table public.members add column if not exists executive_5_linkedin_url text;
-alter table public.members add column if not exists executive_5_github_url text;
-alter table public.members add column if not exists executive_5_twitter_url text;
-alter table public.members add column if not exists executive_6 text;
-alter table public.members add column if not exists executive_6_image_url text;
-alter table public.members add column if not exists executive_6_linkedin_url text;
-alter table public.members add column if not exists executive_6_github_url text;
-alter table public.members add column if not exists executive_6_twitter_url text;
-alter table public.members add column if not exists executive_7 text;
-alter table public.members add column if not exists executive_7_image_url text;
-alter table public.members add column if not exists executive_7_linkedin_url text;
-alter table public.members add column if not exists executive_7_github_url text;
-alter table public.members add column if not exists executive_7_twitter_url text;
-alter table public.members add column if not exists executive_8 text;
-alter table public.members add column if not exists executive_8_image_url text;
-alter table public.members add column if not exists executive_8_linkedin_url text;
-alter table public.members add column if not exists executive_8_github_url text;
-alter table public.members add column if not exists executive_8_twitter_url text;
-alter table public.members add column if not exists created_at timestamptz;
-alter table public.members add column if not exists created_by uuid;
-
-alter table public.blog_posts add column if not exists title text;
-alter table public.blog_posts add column if not exists excerpt text;
-alter table public.blog_posts add column if not exists author text;
-alter table public.blog_posts add column if not exists date text;
-alter table public.blog_posts add column if not exists category text;
-alter table public.blog_posts add column if not exists image_url text;
-alter table public.blog_posts add column if not exists read_time text;
-alter table public.blog_posts add column if not exists status text;
-alter table public.blog_posts add column if not exists created_at timestamptz;
-alter table public.blog_posts add column if not exists created_by uuid;
-
-alter table public.gallery_items add column if not exists title text;
-alter table public.gallery_items add column if not exists category text;
-alter table public.gallery_items add column if not exists date text;
-alter table public.gallery_items add column if not exists status text;
-alter table public.gallery_items add column if not exists image_url text;
-alter table public.gallery_items add column if not exists created_at timestamptz;
-alter table public.gallery_items add column if not exists created_by uuid;
-
--- Resources migrations
-alter table public.resources add column if not exists title text;
-alter table public.resources add column if not exists link text;
-alter table public.resources add column if not exists category text;
-alter table public.resources add column if not exists type text;
-alter table public.resources add column if not exists description text;
-alter table public.resources add column if not exists created_at timestamptz;
-
--- RLS
-alter table public.events enable row level security;
-alter table public.event_timeline_items enable row level security;
-alter table public.event_themes enable row level security;
-alter table public.event_prizes enable row level security;
-alter table public.members enable row level security;
-alter table public.blog_posts enable row level security;
-alter table public.gallery_items enable row level security;
-alter table public.resources enable row level security;
-
--- NOTE:
--- The frontend UID check is not security by itself.
--- For real protection, enforce allowed admin UIDs at the database level.
--- Replace the UUID(s) below with your admin UID(s).
-
--- EVENTS POLICIES
--- Public read access (used by /events page)
-drop policy if exists "events_public_select" on public.events;
-create policy "events_public_select" on public.events
-for select to anon
-using (true);
-
--- Public read access (used by event detail page)
-drop policy if exists "event_timeline_public_select" on public.event_timeline_items;
-create policy "event_timeline_public_select" on public.event_timeline_items
-for select to anon
-using (true);
-
-drop policy if exists "event_themes_public_select" on public.event_themes;
-create policy "event_themes_public_select" on public.event_themes
-for select to anon
-using (true);
-
-drop policy if exists "event_prizes_public_select" on public.event_prizes;
-create policy "event_prizes_public_select" on public.event_prizes
-for select to anon
-using (true);
-
--- RESOURCES POLICIES
-drop policy if exists "resources_public_select" on public.resources;
-create policy "resources_public_select" on public.resources
-for select to anon
-using (true);
-
-drop policy if exists "resources_public_insert" on public.resources;
-create policy "resources_public_insert" on public.resources
-for insert to anon
-with check (true);
-
-drop policy if exists "events_admin_select" on public.events;
-create policy "events_admin_select" on public.events
-for select to authenticated
-using (
-  auth.uid() = 'ee29aa82-28cd-4004-a0ab-61d20e5a1c2e'::uuid
-);
-
-drop policy if exists "events_admin_insert" on public.events;
-create policy "events_admin_insert" on public.events
-for insert to authenticated
-with check (
-  auth.uid() = 'ee29aa82-28cd-4004-a0ab-61d20e5a1c2e'::uuid
-  and created_by = auth.uid()
-);
-
-drop policy if exists "events_admin_update" on public.events;
-create policy "events_admin_update" on public.events
-for update to authenticated
-using (auth.uid() = 'ee29aa82-28cd-4004-a0ab-61d20e5a1c2e'::uuid)
-with check (auth.uid() = 'ee29aa82-28cd-4004-a0ab-61d20e5a1c2e'::uuid);
-
-drop policy if exists "events_admin_delete" on public.events;
-create policy "events_admin_delete" on public.events
-for delete to authenticated
-using (auth.uid() = 'ee29aa82-28cd-4004-a0ab-61d20e5a1c2e'::uuid);
-
--- EVENT INNER DATA POLICIES
-drop policy if exists "event_timeline_admin_select" on public.event_timeline_items;
-create policy "event_timeline_admin_select" on public.event_timeline_items
-for select to authenticated
-using (auth.uid() = 'ee29aa82-28cd-4004-a0ab-61d20e5a1c2e'::uuid);
-
-drop policy if exists "event_timeline_admin_insert" on public.event_timeline_items;
-create policy "event_timeline_admin_insert" on public.event_timeline_items
-for insert to authenticated
-with check (
-  auth.uid() = 'ee29aa82-28cd-4004-a0ab-61d20e5a1c2e'::uuid
-  and created_by = auth.uid()
-);
-
-drop policy if exists "event_timeline_admin_update" on public.event_timeline_items;
-create policy "event_timeline_admin_update" on public.event_timeline_items
-for update to authenticated
-using (auth.uid() = 'ee29aa82-28cd-4004-a0ab-61d20e5a1c2e'::uuid)
-with check (auth.uid() = 'ee29aa82-28cd-4004-a0ab-61d20e5a1c2e'::uuid);
-
-drop policy if exists "event_timeline_admin_delete" on public.event_timeline_items;
-create policy "event_timeline_admin_delete" on public.event_timeline_items
-for delete to authenticated
-using (auth.uid() = 'ee29aa82-28cd-4004-a0ab-61d20e5a1c2e'::uuid);
-
-drop policy if exists "event_themes_admin_select" on public.event_themes;
-create policy "event_themes_admin_select" on public.event_themes
-for select to authenticated
-using (auth.uid() = 'ee29aa82-28cd-4004-a0ab-61d20e5a1c2e'::uuid);
-
-drop policy if exists "event_themes_admin_insert" on public.event_themes;
-create policy "event_themes_admin_insert" on public.event_themes
-for insert to authenticated
-with check (
-  auth.uid() = 'ee29aa82-28cd-4004-a0ab-61d20e5a1c2e'::uuid
-  and created_by = auth.uid()
-);
-
-drop policy if exists "event_themes_admin_update" on public.event_themes;
-create policy "event_themes_admin_update" on public.event_themes
-for update to authenticated
-using (auth.uid() = 'ee29aa82-28cd-4004-a0ab-61d20e5a1c2e'::uuid)
-with check (auth.uid() = 'ee29aa82-28cd-4004-a0ab-61d20e5a1c2e'::uuid);
-
-drop policy if exists "event_themes_admin_delete" on public.event_themes;
-create policy "event_themes_admin_delete" on public.event_themes
-for delete to authenticated
-using (auth.uid() = 'ee29aa82-28cd-4004-a0ab-61d20e5a1c2e'::uuid);
-
-drop policy if exists "event_prizes_admin_select" on public.event_prizes;
-create policy "event_prizes_admin_select" on public.event_prizes
-for select to authenticated
-using (auth.uid() = 'ee29aa82-28cd-4004-a0ab-61d20e5a1c2e'::uuid);
-
-drop policy if exists "event_prizes_admin_insert" on public.event_prizes;
-create policy "event_prizes_admin_insert" on public.event_prizes
-for insert to authenticated
-with check (
-  auth.uid() = 'ee29aa82-28cd-4004-a0ab-61d20e5a1c2e'::uuid
-  and created_by = auth.uid()
-);
-
-drop policy if exists "event_prizes_admin_update" on public.event_prizes;
-create policy "event_prizes_admin_update" on public.event_prizes
-for update to authenticated
-using (auth.uid() = 'ee29aa82-28cd-4004-a0ab-61d20e5a1c2e'::uuid)
-with check (auth.uid() = 'ee29aa82-28cd-4004-a0ab-61d20e5a1c2e'::uuid);
-
-drop policy if exists "event_prizes_admin_delete" on public.event_prizes;
-create policy "event_prizes_admin_delete" on public.event_prizes
-for delete to authenticated
-using (auth.uid() = 'ee29aa82-28cd-4004-a0ab-61d20e5a1c2e'::uuid);
-
--- GALLERY POLICIES
--- Public read access (used by /gallery page)
-drop policy if exists "gallery_public_select" on public.gallery_items;
-create policy "gallery_public_select" on public.gallery_items
-for select to anon
-using (true);
-
--- MEMBERS POLICIES
--- Public read access (used by /members page)
-drop policy if exists "members_public_select" on public.members;
-create policy "members_public_select" on public.members
-for select to anon
-using (true);
-
-drop policy if exists "members_admin_select" on public.members;
-create policy "members_admin_select" on public.members
-for select to authenticated
-using (
-  auth.uid() = 'ee29aa82-28cd-4004-a0ab-61d20e5a1c2e'::uuid
-);
-
-drop policy if exists "members_admin_insert" on public.members;
-create policy "members_admin_insert" on public.members
-for insert to authenticated
-with check (
-  auth.uid() = 'ee29aa82-28cd-4004-a0ab-61d20e5a1c2e'::uuid
-  and created_by = auth.uid()
-);
-
-drop policy if exists "members_admin_update" on public.members;
-create policy "members_admin_update" on public.members
-for update to authenticated
-using (auth.uid() = 'ee29aa82-28cd-4004-a0ab-61d20e5a1c2e'::uuid)
-with check (auth.uid() = 'ee29aa82-28cd-4004-a0ab-61d20e5a1c2e'::uuid);
-
-drop policy if exists "members_admin_delete" on public.members;
-create policy "members_admin_delete" on public.members
-for delete to authenticated
-using (auth.uid() = 'ee29aa82-28cd-4004-a0ab-61d20e5a1c2e'::uuid);
-
--- BLOG POSTS POLICIES
-drop policy if exists "blog_posts_admin_select" on public.blog_posts;
-create policy "blog_posts_admin_select" on public.blog_posts
-for select to authenticated
-using (
-  auth.uid() = 'ee29aa82-28cd-4004-a0ab-61d20e5a1c2e'::uuid
-);
-
--- Public read access for published posts (used by /blog page)
-drop policy if exists "blog_posts_public_select_published" on public.blog_posts;
-create policy "blog_posts_public_select_published" on public.blog_posts
-for select to anon
-using (status = 'published');
-
-drop policy if exists "blog_posts_admin_insert" on public.blog_posts;
-create policy "blog_posts_admin_insert" on public.blog_posts
-for insert to authenticated
-with check (
-  auth.uid() = 'ee29aa82-28cd-4004-a0ab-61d20e5a1c2e'::uuid
-  and created_by = auth.uid()
-);
-
-drop policy if exists "blog_posts_admin_update" on public.blog_posts;
-create policy "blog_posts_admin_update" on public.blog_posts
-for update to authenticated
-using (auth.uid() = 'ee29aa82-28cd-4004-a0ab-61d20e5a1c2e'::uuid)
-with check (auth.uid() = 'ee29aa82-28cd-4004-a0ab-61d20e5a1c2e'::uuid);
-
-drop policy if exists "blog_posts_admin_delete" on public.blog_posts;
-create policy "blog_posts_admin_delete" on public.blog_posts
-for delete to authenticated
-using (auth.uid() = 'ee29aa82-28cd-4004-a0ab-61d20e5a1c2e'::uuid);
-
--- GALLERY ITEMS POLICIES
-drop policy if exists "gallery_items_admin_select" on public.gallery_items;
-create policy "gallery_items_admin_select" on public.gallery_items
-for select to authenticated
-using (
-  auth.uid() = 'ee29aa82-28cd-4004-a0ab-61d20e5a1c2e'::uuid
-);
-
-drop policy if exists "gallery_items_admin_insert" on public.gallery_items;
-create policy "gallery_items_admin_insert" on public.gallery_items
-for insert to authenticated
-with check (
-  auth.uid() = 'ee29aa82-28cd-4004-a0ab-61d20e5a1c2e'::uuid
-  and created_by = auth.uid()
-);
-
-drop policy if exists "gallery_items_admin_update" on public.gallery_items;
-create policy "gallery_items_admin_update" on public.gallery_items
-for update to authenticated
-using (auth.uid() = 'ee29aa82-28cd-4004-a0ab-61d20e5a1c2e'::uuid)
-with check (auth.uid() = 'ee29aa82-28cd-4004-a0ab-61d20e5a1c2e'::uuid);
-
-drop policy if exists "gallery_items_admin_delete" on public.gallery_items;
-create policy "gallery_items_admin_delete" on public.gallery_items
-for delete to authenticated
-using (auth.uid() = 'ee29aa82-28cd-4004-a0ab-61d20e5a1c2e'::uuid);
