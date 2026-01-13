@@ -234,7 +234,7 @@ const Admin = () => {
       if (error) alert(`Error: ${error.message}`);
     } else if (table === 'members') {
       // Special handling for members table using RPC
-      const { data: newMember, error } = await supabase.rpc('add_member', {
+      const { data: newMemberId, error } = await supabase.rpc('add_member', {
         p_name: data.name,
         p_email: data.email,
         p_team_name: data.team_name,
@@ -244,6 +244,7 @@ const Admin = () => {
         p_linkedin_url: data.linkedin_url || null,
         p_github_url: data.github_url || null,
         p_x_url: data.x_url || null,
+        p_instagram_url: data.instagram_url || null,
         p_display_order: data.display_order || 0
       });
       if (error) {
@@ -252,7 +253,8 @@ const Admin = () => {
         return null;
       }
       await refreshAll();
-      return newMember; // Return the created member for image upload
+      // Return object with id for image upload (add_member returns UUID directly)
+      return { id: newMemberId };
     } else {
       const { error } = await supabase.from(table).insert({
         ...data,
@@ -292,7 +294,9 @@ const Admin = () => {
         p_linkedin_url: data.linkedin_url || null,
         p_github_url: data.github_url || null,
         p_x_url: data.x_url || null,
-        p_display_order: data.display_order || 0
+        p_instagram_url: data.instagram_url || null,
+        p_display_order: data.display_order || 0,
+        p_is_active: data.is_active !== undefined ? data.is_active : true
       });
       if (error) alert(`Error: ${error.message}`);
     } else {

@@ -304,8 +304,7 @@ const Home = () => {
           <motion.div
             variants={staggerContainer}
             initial="initial"
-            whileInView="animate"
-            viewport={{ once: true }}
+            animate="animate"
             className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8"
           >
             {events.map((event, index) => (
@@ -314,7 +313,7 @@ const Home = () => {
                 to={`/events/${event.slug}`}
               >
                 <motion.div
-                  variants={fadeInUp}
+                  initial={{ opacity: 1, y: 0 }}
                   whileHover={{ y: -12, transition: { duration: 0.3 } }}
                   className="relative overflow-hidden rounded-3xl shadow-xl shadow-gray-200/50 dark:shadow-black/20 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 cursor-pointer group h-full"
                 >
