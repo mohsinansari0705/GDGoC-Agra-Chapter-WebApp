@@ -1,63 +1,92 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight, Calendar, Users, BookOpen, Code2, Sparkles, Zap, Globe } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { fadeInUp, staggerContainer, pageTransition, scaleIn, hoverScale } from '../utils/animations';
+import { supabase } from '../lib/supabaseClient';
 
 const Home = () => {
+  const [events, setEvents] = useState([]);
 
+  useEffect(() => {
+    const fetchEvents = async () => {
+      if (!supabase) return;
+      
+      try {
+        // First try to get upcoming and live events
+        let { data, error } = await supabase
+          .from('events')
+          .select('id,title,date,category,status,color,cover_image_url,slug,featured')
+          .in('status', ['upcoming', 'live'])
+          .order('featured', { ascending: false })
+          .order('date', { ascending: true })
+          .limit(3);
 
+        // If no upcoming/live events, get completed events as fallback
+        if (!error && (!data || data.length === 0)) {
+          const result = await supabase
+            .from('events')
+            .select('id,title,date,category,status,color,cover_image_url,slug,featured')
+            .eq('status', 'completed')
+            .order('featured', { ascending: false })
+            .order('date', { ascending: false })
+            .limit(3);
+          
+          data = result.data;
+          error = result.error;
+        }
 
-  const events = [
-    {
-      id: 1,
-      title: 'TechSprint',
-      date: 'Jan 30, 2026',
-      category: 'Hackathon',
-      color: 'from-red-500 to-orange-500',
-      status: 'Upcoming'
-    },
-    {
-      id: 2,
-      title: 'Google Cloud Study Jams',
-      date: 'Oct 1, 2025',
-      category: 'Workshop',
-      color: 'from-yellow-500 to-amber-500',
-      status: 'Completed'
-    },
-    {
-      id: 3,
-      title: 'VividGlyph',
-      date: 'Sep 15, 2025',
-      category: 'Hackathon',
-      color: 'from-blue-500 to-cyan-500',
-      status: 'Completed'
-    }
-  ];
+        if (error) throw error;
+
+        const mapped = (data || []).map(event => {
+          const statusRaw = String(event.status || '').trim().toLowerCase();
+          let normalizedStatus = statusRaw; // Use the status from DB directly
+
+          return {
+            id: event.id,
+            slug: event.slug || event.id,
+            title: event.title || '',
+            date: event.date || '',
+            category: event.category || 'Event',
+            color: event.color || 'from-blue-500 to-cyan-500',
+            status: normalizedStatus,
+            image: String(event.cover_image_url || '').trim(),
+            featured: event.featured || false,
+          };
+        });
+
+        setEvents(mapped);
+      } catch (err) {
+        console.error('Error fetching events:', err);
+      }
+    };
+
+    fetchEvents();
+  }, []);
 
   const techAreas = [
     {
       title: 'Web Development',
       description: 'HTML5, React.js, Next.js, modern web tech',
-      color: 'bg-blue-500',
+      color: 'bg-red-500',
       icon: <Code2 className="w-8 h-8" />
     },
     {
       title: 'AI/ML',
       description: 'Artificial Intelligence, ML models',
-      color: 'bg-red-500',
+      color: 'bg-green-500',
       icon: <BookOpen className="w-8 h-8" />
     },
     {
       title: 'Android',
       description: 'React Native and Flutter',
-      color: 'bg-yellow-500',
+      color: 'bg-blue-500',
       icon: <Code2 className="w-8 h-8" />
     },
     {
       title: 'Design & Photography',
       description: 'UI/UX design and photography',
-      color: 'bg-green-500',
+      color: 'bg-yellow-500',
       icon: <BookOpen className="w-8 h-8" />
     }
   ];
@@ -164,7 +193,7 @@ const Home = () => {
                   <ArrowRight className="ml-2 w-5 h-5" />
                 </Link>
                 <a
-                  href="https://gdg.community.dev"
+                  href="https://gdg.community.dev/gdg-on-campus-sharda-university-agra-india/"
                   target="_blank"
                   rel="noreferrer"
                   className="inline-flex items-center px-8 py-3.5 bg-white dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 font-bold"
@@ -277,46 +306,89 @@ const Home = () => {
             initial="initial"
             whileInView="animate"
             viewport={{ once: true }}
-            className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8"
+            className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8"
           >
             {events.map((event, index) => (
-              <motion.div
+              <Link
                 key={event.id}
-                variants={fadeInUp}
-                whileHover={{ y: -10, transition: { duration: 0.3 } }}
-                className="relative overflow-hidden rounded-3xl shadow-xl shadow-gray-200/50 dark:shadow-none bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 cursor-pointer group"
+                to={`/events/${event.slug}`}
               >
-                <div className={`h-52 bg-gradient-to-br ${event.color} p-6 flex flex-col justify-end relative overflow-hidden`}>
-                   <motion.div 
-                     initial={{ rotate: 0 }}
-                     whileHover={{ rotate: 10, scale: 1.1 }}
-                     className="absolute top-0 right-0 p-6 opacity-20 transform translate-x-4 -translate-y-4"
-                   >
-                        <Calendar size={80} className="text-white" />
-                   </motion.div>
-                  <div className="text-white relative z-10">
-                    <span className="text-xs font-bold bg-white/20 backdrop-blur-md px-3 py-1 rounded-full border border-white/20">
-                      {event.status}
+                <motion.div
+                  variants={fadeInUp}
+                  whileHover={{ y: -12, transition: { duration: 0.3 } }}
+                  className="relative overflow-hidden rounded-3xl shadow-xl shadow-gray-200/50 dark:shadow-black/20 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 cursor-pointer group h-full"
+                >
+                {/* Image Section with Better Overlay */}
+                <div className="h-64 relative overflow-hidden">
+                  {event.image ? (
+                    <>
+                      <img 
+                        src={event.image} 
+                        alt={event.title}
+                        className="absolute inset-0 w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                          e.currentTarget.nextElementSibling.style.display = 'flex';
+                        }}
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent opacity-80"></div>
+                    </>
+                  ) : (
+                    <div className={`flex absolute inset-0 bg-gradient-to-br ${event.color} p-6 flex-col justify-end`}>
+                       <motion.div 
+                         initial={{ rotate: 0 }}
+                         whileHover={{ rotate: 10, scale: 1.1 }}
+                         className="absolute top-0 right-0 p-6 opacity-20 transform translate-x-4 -translate-y-4"
+                       >
+                            <Calendar size={80} className="text-white" />
+                       </motion.div>
+                    </div>
+                  )}
+                  
+                  {/* Status Badge */}
+                  <div className="absolute top-4 right-4 z-10">
+                    <span className={`text-xs font-bold backdrop-blur-md px-4 py-2 rounded-full border shadow-lg ${
+                      event.status === 'upcoming' 
+                        ? 'bg-blue-500/95 border-blue-400/50 text-white'
+                        : event.status === 'live' 
+                        ? 'bg-green-500/95 border-green-400/50 text-white animate-pulse' 
+                        : 'bg-gray-500/95 border-gray-400/50 text-white'
+                    }`}>
+                      {event.status.charAt(0).toUpperCase() + event.status.slice(1)}
+                    </span>
+                  </div>
+                  
+                  {/* Category Badge */}
+                  <div className="absolute bottom-4 left-4 z-10">
+                    <span className="text-xs font-bold bg-white/20 backdrop-blur-md text-white px-3 py-1.5 rounded-lg border border-white/30">
+                      {event.category.charAt(0).toUpperCase() + event.category.slice(1)}
                     </span>
                   </div>
                 </div>
+                
+                {/* Content Section */}
                 <div className="bg-white dark:bg-gray-800 p-6">
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3 line-clamp-2 group-hover:text-google-blue transition-colors">
                     {event.title}
                   </h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                    {event.category}
-                  </p>
-                  <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
-                    <Calendar className="w-4 h-4 mr-2" />
-                    {event.date}
+                  
+                  <div className="flex items-center text-sm text-gray-600 dark:text-gray-400 mb-4">
+                    <Calendar className="w-4 h-4 mr-2 text-google-blue" />
+                    <span className="font-medium">{event.date}</span>
                   </div>
-                  <button className="mt-4 text-google-blue font-medium hover:underline">
-                    View Details →
-                  </button>
+                  
+                  <div className="flex items-center justify-between pt-4 border-t border-gray-100 dark:border-gray-700">
+                    <span className="text-sm font-semibold text-google-blue group-hover:underline">
+                      View Details
+                    </span>
+                    <ArrowRight className="w-5 h-5 text-google-blue transform group-hover:translate-x-1 transition-transform" />
+                  </div>
                 </div>
-                <div className={`h-1 w-full bg-gradient-to-r ${event.color} transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left`}></div>
+                
+                {/* Animated Bottom Border */}
+                <div className={`h-1.5 w-full bg-gradient-to-r ${event.color} transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left`}></div>
               </motion.div>
+              </Link>
             ))}
           </motion.div>
 

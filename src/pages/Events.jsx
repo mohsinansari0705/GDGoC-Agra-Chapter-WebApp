@@ -1,145 +1,69 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Calendar, MapPin, Users, ArrowRight, Clock, Search, Filter } from "lucide-react";
+import { Calendar, MapPin, Users, ArrowRight, Clock, Search, Filter, AlertCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient";
 import { fadeInUp, staggerContainer, pageTransition, scaleIn, fadeIn } from "../utils/animations";
 
+const EventCardSkeleton = () => (
+  <div className="bg-white dark:bg-gray-800 rounded-3xl overflow-hidden shadow-sm border border-gray-100 dark:border-gray-700 animate-pulse">
+    <div className="h-56 bg-gray-200 dark:bg-gray-700"></div>
+    <div className="p-6">
+      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-4"></div>
+      <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-full mb-2"></div>
+      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-5/6 mb-6"></div>
+      <div className="flex items-center gap-4 mb-6">
+        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-24"></div>
+        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-20"></div>
+      </div>
+      <div className="h-12 bg-gray-200 dark:bg-gray-700 rounded-xl w-full"></div>
+    </div>
+  </div>
+);
+
 const Events = () => {
   const [filter, setFilter] = useState("all");
-
-  const fallbackEvents = useMemo(
-    () => [
-      {
-        id: "techsprint-2026",
-        title: "TechSprint",
-        date: "Jan 30, 2026",
-        endDate: "Feb 1, 2026",
-        time: "9:00 AM",
-        location: "SRM Campus, Agra",
-        category: "Hackathon",
-        status: "upcoming",
-        participants: "500+",
-        description:
-          "An open-innovation hackathon where students developers get 36 hours to learn, collaborate, and compete in one of the most exciting student hackathon around.",
-        image:
-          "https://via.placeholder.com/600x400/EA4335/ffffff?text=TechSprint",
-        color: "from-red-500 to-orange-500",
-        registrationLink: "#",
-      },
-      {
-        id: "promptrush-2025",
-        title: "PromptRush 2.0",
-        date: "Sep 12, 2025",
-        time: "10:00 AM",
-        location: "Online",
-        category: "Workshop",
-        status: "past",
-        participants: "300+",
-        description:
-          "Unlock the power of innovation with Google AI and Cloud. Designed for budding AI engineers including Data Engineers.",
-        image:
-          "https://via.placeholder.com/600x400/FBBC04/ffffff?text=PromptRush",
-        color: "from-yellow-500 to-amber-500",
-      },
-      {
-        id: "vividglyph-2025",
-        title: "VividGlyph",
-        date: "Sep 15, 2025",
-        time: "11:00 AM",
-        location: "SRM Campus, Agra",
-        category: "Hackathon",
-        status: "past",
-        participants: "450+",
-        description:
-          "VividGlyph is a 24-hour long, one-of-a-kind Inter college Designathon. Open to all design aficionados to put problem-solving skills to the test.",
-        image:
-          "https://via.placeholder.com/600x400/4285F4/ffffff?text=VividGlyph",
-        color: "from-blue-500 to-cyan-500",
-      },
-      {
-        id: "google-cloud-study-jams",
-        title: "Google Cloud Study Jams",
-        date: "Oct 1, 2025",
-        time: "2:00 PM",
-        location: "Online",
-        category: "Workshop",
-        status: "past",
-        participants: "600+",
-        description:
-          "A cohort of learning Google Cloud Platform built for beginners with weekly learning sessions and resources from Google.",
-        image:
-          "https://via.placeholder.com/600x400/34A853/ffffff?text=Study+Jams",
-        color: "from-green-500 to-emerald-500",
-      },
-      {
-        id: "cyberverse-2024",
-        title: "CyberVerse",
-        date: "Apr 20, 2025",
-        time: "9:00 AM",
-        location: "SRM Campus, Agra",
-        category: "Hackathon",
-        status: "past",
-        participants: "400+",
-        description:
-          "CyberVerse brings together budding tech enthusiasts to collaborate on real-world cyber security challenges.",
-        image:
-          "https://via.placeholder.com/600x400/9C27B0/ffffff?text=CyberVerse",
-        color: "from-purple-500 to-pink-500",
-      },
-      {
-        id: "autocoder-2024",
-        title: "AutoCoder 2.0",
-        date: "Feb 10, 2025",
-        time: "3:00 PM",
-        location: "Online",
-        category: "Coding Competition",
-        status: "past",
-        participants: "350+",
-        description:
-          "The Digital Harvesting Challenge! Put your creativity and technology skills to the test.",
-        image:
-          "https://via.placeholder.com/600x400/FF5722/ffffff?text=AutoCoder",
-        color: "from-orange-500 to-red-500",
-      },
-    ],
-    []
-  );
-
-  const [eventsData, setEventsData] = useState(fallbackEvents);
+  const [eventsData, setEventsData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     let isMounted = true;
 
     const load = async () => {
-      if (!supabase) return;
+      if (!supabase) {
+        setLoading(false);
+        setError("Database connection not available");
+        return;
+      }
 
       try {
+        setLoading(true);
+        setError(null);
+        
         const { data, error } = await supabase
           .from("events")
           .select(
-            "id,title,category,status,description,date,end_date,time,location,participants,image_url,registration_link,color,created_at"
+            "id,slug,title,category,status,description,date,end_date,time,location,cover_image_url,banner_image_url,registration_link,color,featured,tags,created_at"
           )
-          .order("created_at", { ascending: false })
+          .in("status", ["upcoming", "live", "completed"])
+          .order("date", { ascending: true })
           .limit(100);
 
         if (error) throw error;
 
-        const mapped = (data || []).map((event) => {
-          const statusRaw = String(event.status || "").trim();
-          const statusLower = statusRaw.toLowerCase();
-          const normalizedStatus =
-            statusLower === "past" ||
-            statusLower === "completed" ||
-            statusLower.includes("past") ||
-            statusLower.includes("completed")
-              ? "past"
-              : "upcoming";
+        if (!isMounted) return;
 
-          const imageUrlRaw = String(event.image_url || "").trim();
+        const mapped = (data || []).map((event) => {
+          const statusRaw = String(event.status || "").trim().toLowerCase();
+          // Use status directly from database: upcoming, live, completed
+          let normalizedStatus = statusRaw;
+
+          const imageUrlRaw = String(event.cover_image_url || "").trim();
 
           return {
             id: event.id,
+            slug: event.slug || event.id,
             title: event.title || "",
             date: event.date || "",
             endDate: event.end_date || "",
@@ -147,20 +71,22 @@ const Events = () => {
             location: event.location || "",
             category: event.category || "Event",
             status: normalizedStatus,
-            participants: event.participants || "",
             description: event.description || "",
-            image:
-              imageUrlRaw ||
-              "https://via.placeholder.com/600x400/4285F4/ffffff?text=Event",
+            image: imageUrlRaw,
+            bannerImage: String(event.banner_image_url || "").trim() || imageUrlRaw,
             color: event.color || "from-blue-500 to-cyan-500",
             registrationLink: event.registration_link || "#",
+            featured: event.featured || false,
+            tags: event.tags || [],
           };
         });
 
-        if (!isMounted) return;
-        if (mapped.length > 0) setEventsData(mapped);
-      } catch {
-        // Keep fallback data on any error
+        setEventsData(mapped);
+      } catch (err) {
+        console.error("Error fetching events:", err);
+        if (isMounted) setError("Failed to load events. Please try again later.");
+      } finally {
+        if (isMounted) setLoading(false);
       }
     };
 
@@ -169,27 +95,40 @@ const Events = () => {
     return () => {
       isMounted = false;
     };
-  }, [fallbackEvents]);
+  }, []);
 
   const categories = useMemo(() => {
-    const base = ["all", "Hackathon", "Workshop", "Coding Competition"];
-    const extra = Array.from(
+    const allCategories = Array.from(
       new Set(
         (eventsData || [])
           .map((e) => e.category)
-          .filter((c) => c && !base.includes(c))
+          .filter((c) => c)
       )
     );
-    return [...base, ...extra];
+    return ["all", ...allCategories];
   }, [eventsData]);
 
-  const filteredEvents =
+  const filteredEvents = useMemo(() => 
     filter === "all"
       ? eventsData
-      : eventsData.filter((event) => event.category === filter);
+      : eventsData.filter((event) => event.category === filter),
+    [filter, eventsData]
+  );
 
-  const upcomingEvents = filteredEvents.filter((e) => e.status === "upcoming");
-  const pastEvents = filteredEvents.filter((e) => e.status === "past");
+  const upcomingEvents = useMemo(() => 
+    filteredEvents.filter((e) => e.status === "upcoming"),
+    [filteredEvents]
+  );
+
+  const liveEvents = useMemo(() => 
+    filteredEvents.filter((e) => e.status === "live"),
+    [filteredEvents]
+  );
+  
+  const pastEvents = useMemo(() => 
+    filteredEvents.filter((e) => e.status === "completed"),
+    [filteredEvents]
+  );
 
   return (
     <motion.div 
@@ -268,23 +207,186 @@ const Events = () => {
                     transition={{ type: "spring", stiffness: 300, damping: 30 }}
                   />
                 )}
-                {category.charAt(0).toUpperCase() + category.slice(1)}
+                {category === "all" ? "All" : category.charAt(0).toUpperCase() + category.slice(1)}
               </button>
             ))}
           </div>
         </motion.div>
 
-        {/* Upcoming Events */}
-        {upcomingEvents.length > 0 && (
+        {/* Loading State */}
+        {loading && (
+          <>
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-center py-12"
+            >
+              <div className="relative inline-flex items-center justify-center">
+                <div className="absolute animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-google-blue"></div>
+                <div className="absolute animate-ping rounded-full h-12 w-12 bg-google-blue opacity-20"></div>
+                <div className="relative">
+                  <Calendar className="w-8 h-8 text-google-blue" />
+                </div>
+              </div>
+              <motion.p 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="mt-6 text-lg font-semibold text-gray-700 dark:text-gray-300"
+              >
+                Loading events...
+              </motion.p>
+            </motion.div>
+            
+            {/* Skeleton Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <EventCardSkeleton key={i} />
+              ))}
+            </div>
+          </>
+        )}
+
+        {/* Error State */}
+        {!loading && error && (
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center py-20"
+          >
+            <div className="w-20 h-20 bg-red-50 dark:bg-red-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
+              <AlertCircle className="w-10 h-10 text-red-500" />
+            </div>
+            <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+              Oops! Something went wrong
+            </h3>
+            <p className="text-gray-600 dark:text-gray-400 mb-6">
+              {error}
+            </p>
+            <button
+              onClick={() => window.location.reload()}
+              className="px-6 py-3 bg-google-blue text-white rounded-xl font-semibold hover:shadow-lg hover:-translate-y-0.5 transition-all"
+            >
+              Try Again
+            </button>
+          </motion.div>
+        )}
+
+        {/* Live Events */}
+        {!loading && liveEvents.length > 0 && (
           <div className="mb-16">
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-8 flex items-center gap-3">
+              <span className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></span>
+              Live Events
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {liveEvents.map((event, index) => (
+                <Link
+                  key={event.id}
+                  to={`/events/${event.slug}`}
+                >
+                  <motion.div
+                    initial={{ opacity: 1 }}
+                    whileInView={{ opacity: 1 }}
+                    viewport={{ once: true }}
+                    whileHover={{ y: -12, scale: 1.02 }}
+                    className="bg-white dark:bg-gray-800 rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl border border-gray-200 dark:border-gray-700 group cursor-pointer transition-all duration-300 h-full flex flex-col"
+                  >
+                    {/* Image Section */}
+                    <div className="h-56 relative overflow-hidden">
+                      <img
+                        src={event.image}
+                        alt={event.title}
+                        loading="lazy"
+                        className="absolute inset-0 w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
+                        onError={(e) => {
+                          e.currentTarget.style.display = "none";
+                        }}
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
+                      
+                      {/* Status Badge */}
+                      <div className="absolute top-4 right-4 z-10">
+                        <span className="bg-green-500/95 backdrop-blur-md text-white border border-green-400/50 text-xs font-bold px-4 py-2 rounded-full shadow-lg animate-pulse flex items-center gap-2">
+                          <span className="w-2 h-2 bg-white rounded-full"></span>
+                          Live
+                        </span>
+                      </div>
+                      
+                      {/* Category Badge */}
+                      <div className="absolute top-4 left-4 z-10">
+                        <span className="bg-white/20 backdrop-blur-md text-white text-xs font-semibold px-3 py-1.5 rounded-lg border border-white/30">
+                          {event.category.charAt(0).toUpperCase() + event.category.slice(1)}
+                        </span>
+                      </div>
+                      
+                      {/* Title Overlay */}
+                      <div className="absolute bottom-4 left-4 right-4 z-10">
+                        <h3 className="text-xl font-bold text-white group-hover:text-green-300 transition-colors leading-tight line-clamp-2">
+                          {event.title}
+                        </h3>
+                      </div>
+                    </div>
+
+                    {/* Content Section */}
+                    <div className="p-6 flex-grow flex flex-col">
+                      <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 mb-4 flex-grow">
+                        {event.description}
+                      </p>
+                      
+                      <div className="space-y-3 mb-6">
+                        <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400">
+                          <div className="flex items-center flex-1">
+                            <Calendar className="w-4 h-4 mr-2 text-google-blue" />
+                            <span className="font-medium">{event.date}</span>
+                          </div>
+                          {event.time && (
+                            <div className="flex items-center flex-1">
+                              <Clock className="w-4 h-4 mr-2 text-google-red" />
+                              <span className="font-medium">{event.time}</span>
+                            </div>
+                          )}
+                        </div>
+                        
+                        {event.location && (
+                          <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                            <MapPin className="w-4 h-4 mr-2 text-google-green flex-shrink-0" />
+                            <span className="line-clamp-1 font-medium">{event.location}</span>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
+                        <span className="text-sm font-bold text-google-blue group-hover:underline">
+                          View Event
+                        </span>
+                        <ArrowRight className="w-5 h-5 text-google-blue transform group-hover:translate-x-2 transition-transform" />
+                      </div>
+                    </div>
+                    
+                    {/* Bottom Accent */}
+                    <div className="h-1.5 w-full bg-gradient-to-r from-green-500 to-green-600 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left"></div>
+                  </motion.div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Upcoming Events */}
+        {!loading && upcomingEvents.length > 0 && (
+          <div className="mb-16">
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-8 flex items-center gap-3">
+              <span className="w-3 h-3 bg-blue-500 rounded-full"></span>
               Upcoming Events
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {upcomingEvents.map((event, index) => (
                 <motion.div
                   key={event.id}
-                  variants={fadeInUp}
+                  initial={{ opacity: 1 }}
+                  whileInView={{ opacity: 1 }}
+                  viewport={{ once: true }}
                   whileHover={{ y: -10 }}
                   className="bg-white dark:bg-gray-800 rounded-3xl overflow-hidden shadow-sm hover:shadow-xl border border-gray-100 dark:border-gray-700 group cursor-pointer transition-all duration-300"
                 >
@@ -302,51 +404,49 @@ const Events = () => {
                       className={`absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent`}
                       aria-hidden="true"
                     />
-                    <div className="absolute top-4 right-4 z-10">
-                      <span className="bg-white/20 backdrop-blur-md text-white border border-white/20 text-xs font-bold px-3 py-1.5 rounded-full">
+                    <div className="absolute top-4 right-4">
+                      <span className="bg-blue-500/90 border-blue-400/50 text-white text-xs font-bold px-3 py-1 rounded-full border backdrop-blur-sm">
                         Upcoming
                       </span>
-                    </div>
-                    
-                    <div className="absolute bottom-4 left-4 z-10 w-full pr-8">
-                       <span className={`text-xs font-bold px-3 py-1 rounded-full bg-${event.color.split('-')[1]}-500 text-white mb-2 inline-block`}>
-                        {event.category}
-                      </span>
-                      <h3 className="text-xl font-bold text-white group-hover:text-google-blue transition-colors leading-tight">
-                        {event.title}
-                      </h3>
                     </div>
                   </div>
 
                   <div className="p-6">
-                    <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400 mb-6 border-b border-gray-100 dark:border-gray-700 pb-4">
-                        <div className="flex items-center">
-                             <Calendar className="w-4 h-4 mr-2 text-google-blue" />
-                             {event.date}
-                        </div>
-                         <div className="flex items-center">
-                             <Clock className="w-4 h-4 mr-2 text-google-red" />
-                             {event.time}
-                        </div>
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="text-xs font-bold text-google-blue uppercase tracking-wider">
+                        {event.category}
+                      </span>
                     </div>
-                    
-                    <div className="space-y-3 text-sm text-gray-600 dark:text-gray-400 mb-6">
-                       <div className="flex items-start">
-                        <MapPin className="w-4 h-4 mr-3 text-gray-400 mt-0.5 flex-shrink-0" />
-                        <span className="line-clamp-1">{event.location}</span>
+
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 group-hover:text-google-blue transition-colors line-clamp-2">
+                      {event.title}
+                    </h3>
+
+                    <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 mb-4">
+                      {event.description}
+                    </p>
+
+                    <div className="flex items-center gap-4 text-sm text-gray-500 mb-6">
+                      <div className="flex items-center">
+                        <Calendar className="w-4 h-4 mr-1.5" />
+                        {event.date}
                       </div>
-                       <div className="flex items-center">
-                        <Users className="w-4 h-4 mr-3 text-gray-400" />
-                        <span>{event.participants} registered</span>
-                      </div>
+                      {event.time && (
+                        <div className="flex items-center">
+                          <Clock className="w-4 h-4 mr-1.5" />
+                          {event.time}
+                        </div>
+                      )}
                     </div>
 
                     <Link
-                      to={`/events/${event.id}`}
-                      state={{ event }}
-                      className="block w-full text-center py-3 rounded-xl bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-white font-semibold hover:bg-google-blue hover:text-white transition-all duration-300"
+                      to={`/events/${event.slug}`}
+                      className="block w-full text-center py-3 bg-gradient-to-r from-google-blue to-blue-600 hover:from-blue-600 hover:to-google-blue text-white rounded-xl font-semibold transition-all hover:shadow-lg hover:-translate-y-0.5 group"
                     >
-                      View Details
+                      <span className="flex items-center justify-center gap-2">
+                        View Details
+                        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                      </span>
                     </Link>
                   </div>
                 </motion.div>
@@ -356,7 +456,7 @@ const Events = () => {
         )}
 
         {/* Past Events */}
-        {pastEvents.length > 0 && (
+        {!loading && pastEvents.length > 0 && (
           <div>
             <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">
               Past Events
@@ -365,7 +465,9 @@ const Events = () => {
               {pastEvents.map((event, index) => (
                 <motion.div
                   key={event.id}
-                  variants={fadeInUp}
+                  initial={{ opacity: 1 }}
+                  whileInView={{ opacity: 1 }}
+                  viewport={{ once: true }}
                   whileHover={{ y: -10 }}
                   className="bg-white dark:bg-gray-800 rounded-3xl overflow-hidden shadow-sm hover:shadow-xl border border-gray-100 dark:border-gray-700 group cursor-pointer transition-all duration-300 opacity-75 hover:opacity-100"
                 >
@@ -401,13 +503,11 @@ const Events = () => {
                      </div>
 
                     <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
-                       <span className="text-sm text-gray-500">{event.participants} attended</span>
                        <Link
-                        to={`/events/${event.id}`}
-                        state={{ event }}
+                        to={`/events/${event.slug}`}
                         className="text-sm font-semibold text-gray-900 dark:text-white hover:text-google-blue"
                       >
-                        Recap →
+                        View Recap →
                       </Link>
                     </div>
                   </div>
@@ -417,14 +517,16 @@ const Events = () => {
           </div>
         )}
 
-        {filteredEvents.length === 0 && (
+        {!loading && filteredEvents.length === 0 && (
           <div className="text-center py-20">
             <Calendar className="w-16 h-16 text-gray-400 mx-auto mb-4" />
             <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-              No events found
+              {filter === "all" ? "No events available" : "No events found"}
             </h3>
             <p className="text-gray-600 dark:text-gray-400">
-              Try selecting a different category
+              {filter === "all" 
+                ? "Check back soon for upcoming events"
+                : "Try selecting a different category"}
             </p>
           </div>
         )}

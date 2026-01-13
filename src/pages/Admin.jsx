@@ -1,7 +1,8 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Lock, User, LogIn, RefreshCw } from "lucide-react";
 import { isSupabaseConfigured, supabase } from "../lib/supabaseClient";
+import { useAdmin } from "../context/AdminContext";
 
 // Import Layout and Managers
 import AdminLayout from "../components/admin/AdminLayout";
@@ -10,13 +11,19 @@ import EventsManager from "../components/admin/EventsManager";
 import BlogManager from "../components/admin/BlogManager";
 import MembersManager from "../components/admin/MembersManager";
 import GalleryManager from "../components/admin/GalleryManager";
+import AdminsManager from "../components/admin/AdminsManager";
+import ResourcesManager from "../components/admin/ResourcesManager";
 
 const Admin = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const { admin, isLoading: authLoading, login, logout, hasAccess, isAuthenticated } = useAdmin();
+  
   const [authError, setAuthError] = useState("");
-  const [credentials, setCredentials] = useState({ email: "", password: "" });
-  const [userId, setUserId] = useState("");
+  const [credentials, setCredentials] = useState({
+    email: "",
+    teamName: "",
+    adminPosition: "",
+    password: ""
+  });
 
   // Dashboard State
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -35,21 +42,8 @@ const Admin = () => {
   const [members, setMembers] = useState([]);
   const [posts, setPosts] = useState([]);
   const [galleryItems, setGalleryItems] = useState([]);
-
-  const allowedUids = useMemo(() => {
-    const raw =
-      import.meta.env.VITE_ADMIN_UIDS || import.meta.env.VITE_ADMIN_UID || "";
-    return raw
-      .split(",")
-      .map((value) => value.trim())
-      .filter(Boolean);
-  }, []);
-
-  const isAllowedAdmin = useMemo(() => {
-    if (!userId) return false;
-    if (allowedUids.length === 0) return false;
-    return allowedUids.includes(userId);
-  }, [allowedUids, userId]);
+  const [admins, setAdmins] = useState([]);
+  const [resources, setResources] = useState([]);
 
   /* -------------------------------------------------------------------------- */
   /*                                Data Fetching                               */
@@ -102,32 +96,103 @@ const Admin = () => {
   };
 
   const loadLists = async () => {
-    if (!supabase) return;
+    if (!supabase || !admin) return;
     setIsDashboardLoading(true);
     try {
-      const [eventsRes, membersRes, postsRes, galleryRes] = await Promise.all([
-        supabase
-          .from("events")
-          .select("*")
-          .order("created_at", { ascending: false }),
-        supabase
-          .from("members")
-          .select("*")
-          .order("created_at", { ascending: false }),
-        supabase
-          .from("blog_posts")
-          .select("*")
-          .order("created_at", { ascending: false }),
-        supabase
-          .from("gallery_items")
-          .select("*")
-          .order("created_at", { ascending: false }),
-      ]);
+      const promises = [];
+      let eventsIndex = -1, membersIndex = -1, postsIndex = -1, galleryIndex = -1, resourcesIndex = -1, adminsIndex = -1;
+      let currentIndex = 0;
 
-      setEvents(eventsRes.data || []);
-      setMembers(membersRes.data || []);
-      setPosts(postsRes.data || []);
-      setGalleryItems(galleryRes.data || []);
+      // Events - super_admin and admin can see all
+      if (hasAccess('events')) {
+        eventsIndex = currentIndex++;
+        promises.push(
+          supabase
+            .from("events")
+            .select("*")
+            .order("created_at", { ascending: false })
+        );
+      }
+
+      // Members - only super_admin
+      if (hasAccess('members')) {
+        membersIndex = currentIndex++;
+        promises.push(
+          supabase
+            .from("members")
+            .select("*")
+            .order("created_at", { ascending: false })
+        );
+      }
+
+      // Blog Posts - super_admin sees all, others see only their own
+      postsIndex = currentIndex++;
+      if (admin.admin_type === 'super_admin') {
+        promises.push(
+          supabase
+            .from("blog_posts")
+            .select("*")
+            .order("created_at", { ascending: false })
+        );
+      } else {
+        promises.push(
+          supabase
+            .from("blog_posts")
+            .select("*")
+            .eq("created_by", admin.admin_id)
+            .order("created_at", { ascending: false })
+        );
+      }
+
+      // Gallery - super_admin and admin can see all
+      if (hasAccess('gallery')) {
+        galleryIndex = currentIndex++;
+        promises.push(
+          supabase
+            .from("gallery_items")
+            .select("*")
+            .order("created_at", { ascending: false })
+        );
+      }
+
+      // Resources - super_admin sees all, others see only their own
+      resourcesIndex = currentIndex++;
+      if (admin.admin_type === 'super_admin') {
+        promises.push(
+          supabase
+            .from("resources")
+            .select("*")
+            .order("created_at", { ascending: false })
+        );
+      } else {
+        promises.push(
+          supabase
+            .from("resources")
+            .select("*")
+            .eq("created_by", admin.admin_id)
+            .order("created_at", { ascending: false })
+        );
+      }
+
+      // Admins - only super_admin
+      if (hasAccess('admins')) {
+        adminsIndex = currentIndex++;
+        promises.push(
+          supabase
+            .from("admins")
+            .select("*")
+            .order("created_at", { ascending: false })
+        );
+      }
+
+      const results = await Promise.all(promises);
+      
+      if (eventsIndex >= 0) setEvents(results[eventsIndex].data || []);
+      if (membersIndex >= 0) setMembers(results[membersIndex].data || []);
+      if (postsIndex >= 0) setPosts(results[postsIndex].data || []);
+      if (galleryIndex >= 0) setGalleryItems(results[galleryIndex].data || []);
+      if (resourcesIndex >= 0) setResources(results[resourcesIndex].data || []);
+      if (adminsIndex >= 0) setAdmins(results[adminsIndex].data || []);
     } catch (error) {
       console.error(error);
     } finally {
@@ -150,36 +215,75 @@ const Admin = () => {
   /* -------------------------------------------------------------------------- */
 
   const handleCreate = async (table, data) => {
-    if (!supabase) return;
+    if (!supabase || !admin) return;
     setIsDashboardLoading(true);
-    const { error } = await supabase.from(table).insert({
-      ...data,
-      created_by: userId,
-    });
-    if (error) alert(`Error: ${error.message}`);
+    
+    // Special handling for admins table using RPC
+    if (table === 'admins') {
+      const { error } = await supabase.rpc('create_admin_with_auth', {
+        p_email: data.email,
+        p_password: data.password,
+        p_admin_name: data.admin_name,
+        p_admin_type: data.admin_type,
+        p_team_name: data.team_name,
+        p_admin_position: data.admin_position,
+        p_is_active: data.is_active
+      });
+      if (error) alert(`Error: ${error.message}`);
+    } else {
+      const { error } = await supabase.from(table).insert({
+        ...data,
+        created_by: admin.admin_id,
+      });
+      if (error) alert(`Error: ${error.message}`);
+    }
     await refreshAll();
   };
 
   const handleUpdate = async (table, id, data) => {
-    if (!supabase) return;
+    if (!supabase || !admin) return;
     setIsDashboardLoading(true);
-    const { error } = await supabase.from(table).update(data).eq("id", id);
-    if (error) alert(`Error: ${error.message}`);
+    
+    // Special handling for admins table using RPC
+    if (table === 'admins') {
+      const { error } = await supabase.rpc('update_admin', {
+        p_admin_id: id,
+        p_admin_name: data.admin_name,
+        p_email: data.email,
+        p_admin_type: data.admin_type,
+        p_team_name: data.team_name,
+        p_admin_position: data.admin_position,
+        p_is_active: data.is_active
+      });
+      if (error) alert(`Error: ${error.message}`);
+    } else {
+      const { error } = await supabase.from(table).update(data).eq("id", id);
+      if (error) alert(`Error: ${error.message}`);
+    }
     await refreshAll();
   };
 
   const handleDelete = async (table, id) => {
-    if (!supabase) return;
+    if (!supabase || !admin) return;
     if (!confirm("Are you sure you want to delete this specific item?")) return;
     setIsDashboardLoading(true);
-    const { error } = await supabase.from(table).delete().eq("id", id);
-    if (error) alert(`Error: ${error.message}`);
+    
+    // Special handling for admins table using RPC
+    if (table === 'admins') {
+      const { error } = await supabase.rpc('delete_admin', {
+        p_admin_id: id
+      });
+      if (error) alert(`Error: ${error.message}`);
+    } else {
+      const { error } = await supabase.from(table).delete().eq("id", id);
+      if (error) alert(`Error: ${error.message}`);
+    }
     await refreshAll();
   };
 
   // Specialized Event Saver (Deep Save)
   const handleSaveEvent = async (eventData, isEdit = false, id = null) => {
-    if (!supabase) return;
+    if (!supabase || !admin) return;
     setIsDashboardLoading(true);
 
     try {
@@ -199,7 +303,7 @@ const Admin = () => {
         // Create Main Event
         const { data, error } = await supabase
           .from("events")
-          .insert({ ...mainData, created_by: userId })
+          .insert({ ...mainData, created_by: admin.admin_id })
           .select()
           .single();
         if (error) throw error;
@@ -207,9 +311,6 @@ const Admin = () => {
       }
 
       // 2. Handle Relations (Timeline, Themes, Prizes)
-      // Strategy: Delete all existing relation items and re-insert (simple replacement)
-      // Ideally we would diff, but replacement is easier for now
-
       if (isEdit) {
         await Promise.all([
           supabase
@@ -232,7 +333,7 @@ const Admin = () => {
           label: item.label || "COMPLETE",
           description: item.description,
           order_index: index,
-          created_by: userId,
+          created_by: admin.admin_id,
         }));
         operations.push(
           supabase.from("event_timeline_items").insert(timelineRows)
@@ -244,7 +345,7 @@ const Admin = () => {
           event_id: eventId,
           theme,
           order_index: index,
-          created_by: userId,
+          created_by: admin.admin_id,
         }));
         operations.push(supabase.from("event_themes").insert(themeRows));
       }
@@ -255,15 +356,19 @@ const Admin = () => {
           position: prize.position,
           amount: prize.amount,
           description: prize.description,
-          created_by: userId,
+          created_by: admin.admin_id,
         }));
         operations.push(supabase.from("event_prizes").insert(prizeRows));
       }
 
       await Promise.all(operations);
+      
+      // Return event ID for image upload
+      return { id: eventId };
     } catch (error) {
       console.error("Save Event Error:", error);
       alert(`Failed to save event: ${error.message}`);
+      throw error;
     } finally {
       await refreshAll();
       setIsDashboardLoading(false);
@@ -275,66 +380,49 @@ const Admin = () => {
   /* -------------------------------------------------------------------------- */
 
   useEffect(() => {
-    let isMounted = true;
-    if (!supabase) {
-      setIsLoading(false);
-      return () => {
-        isMounted = false;
-      };
+    if (isAuthenticated && !authLoading) {
+      refreshAll();
     }
+  }, [isAuthenticated, authLoading]);
 
-    supabase.auth.getSession().then(({ data, error }) => {
-      if (!isMounted) return;
-      if (error) setAuthError(error.message);
-      const id = data?.session?.user?.id || "";
-      setUserId(id);
-      setIsAuthenticated(Boolean(id));
-      setIsLoading(false);
-    });
-
-    const { data: listener } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        if (!isMounted) return;
-        const id = session?.user?.id || "";
-        setUserId(id);
-        setIsAuthenticated(Boolean(id));
-      }
-    );
-
-    return () => {
-      isMounted = false;
-      listener?.subscription?.unsubscribe();
-    };
-  }, []);
-
+  // Protect against unauthorized tab access
   useEffect(() => {
-    if (isAllowedAdmin) refreshAll();
-  }, [isAllowedAdmin]);
+    if (!isAuthenticated || !admin) return;
+
+    const tabPermissions = {
+      'dashboard': true,
+      'admins': hasAccess('admins'),
+      'events': hasAccess('events'),
+      'members': hasAccess('members'),
+      'blog': hasAccess('blogs'),
+      'gallery': hasAccess('gallery'),
+      'resources': hasAccess('resources'),
+    };
+
+    if (!tabPermissions[activeTab]) {
+      setActiveTab('dashboard');
+    }
+  }, [activeTab, isAuthenticated, admin]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setAuthError("");
-    if (!supabase) return;
 
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: credentials.email,
-      password: credentials.password,
-    });
+    const result = await login(
+      credentials.email,
+      credentials.teamName,
+      credentials.adminPosition,
+      credentials.password
+    );
 
-    if (error) {
-      setAuthError(error.message);
-      return;
+    if (!result.success) {
+      setAuthError(result.error || 'Invalid credentials');
     }
-    const id = data?.user?.id || data?.session?.user?.id || "";
-    setUserId(id);
-    setIsAuthenticated(Boolean(id));
   };
 
   const handleLogout = async () => {
-    if (supabase) await supabase.auth.signOut();
-    setIsAuthenticated(false);
-    setUserId("");
-    setCredentials({ email: "", password: "" });
+    await logout();
+    setCredentials({ email: "", teamName: "", adminPosition: "", password: "" });
   };
 
   /* -------------------------------------------------------------------------- */
@@ -360,7 +448,7 @@ const Admin = () => {
     );
   }
 
-  if (isLoading) {
+  if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sharda-blue"></div>
@@ -388,7 +476,7 @@ const Admin = () => {
             </p>
           </div>
 
-          <form onSubmit={handleLogin} className="space-y-5">
+          <form onSubmit={handleLogin} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
                 Email Address
@@ -405,6 +493,53 @@ const Admin = () => {
                   placeholder="admin@example.com"
                   required
                 />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                Team Name
+              </label>
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <select
+                  value={credentials.teamName}
+                  onChange={(e) =>
+                    setCredentials({ ...credentials, teamName: e.target.value })
+                  }
+                  className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-white focus:ring-2 focus:ring-sharda-blue/20 outline-none transition-all"
+                  required
+                >
+                  <option value="">Select Team</option>
+                  <option value="Technical Team">Technical Team</option>
+                  <option value="Events & Operations Team">Events & Operations Team</option>
+                  <option value="PR & Outreach Team">PR & Outreach Team</option>
+                  <option value="Social Media & Content Team">Social Media & Content Team</option>
+                  <option value="Design & Editing Team">Design & Editing Team</option>
+                  <option value="Disciplinary Committee">Disciplinary Committee</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                Position
+              </label>
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <select
+                  value={credentials.adminPosition}
+                  onChange={(e) =>
+                    setCredentials({ ...credentials, adminPosition: e.target.value })
+                  }
+                  className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-white focus:ring-2 focus:ring-sharda-blue/20 outline-none transition-all"
+                  required
+                >
+                  <option value="">Select Position</option>
+                  <option value="head">Head</option>
+                  <option value="co-head">Co-Head</option>
+                  <option value="executive">Executive</option>
+                </select>
               </div>
             </div>
 
@@ -446,55 +581,58 @@ const Admin = () => {
     );
   }
 
-  if (!isAllowedAdmin) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
-        <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-2">
-          Access Denied
-        </h1>
-        <p className="text-gray-600 dark:text-gray-400 mb-6">
-          You do not have permission to view this page.
-        </p>
-        <button
-          onClick={handleLogout}
-          className="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
-        >
-          Logout
-        </button>
-      </div>
-    );
-  }
-
   const renderContent = () => {
     switch (activeTab) {
       case "dashboard":
+        // Build quick actions based on access
+        const quickActions = [];
+        
+        if (hasAccess('events')) {
+          quickActions.push({ 
+            label: "Create Event", 
+            onClick: () => setActiveTab("events") 
+          });
+        }
+        
+        quickActions.push({
+          label: "Write Blog Post",
+          onClick: () => setActiveTab("blog"),
+          className: "bg-blue-50 dark:bg-blue-900/20 text-sharda-blue hover:bg-blue-100",
+        });
+        
+        if (hasAccess('members')) {
+          quickActions.push({
+            label: "Add Member",
+            onClick: () => setActiveTab("members"),
+            className: "bg-green-50 dark:bg-green-900/20 text-green-600 hover:bg-green-100",
+          });
+        }
+        
+        if (hasAccess('gallery')) {
+          quickActions.push({
+            label: "Upload Photo",
+            onClick: () => setActiveTab("gallery"),
+            className: "bg-purple-50 dark:bg-purple-900/20 text-purple-600 hover:bg-purple-100",
+          });
+        }
+
         return (
           <DashboardStats
             stats={stats}
             recent={recent}
             isLoading={isDashboardLoading}
             lastUpdatedAt={lastUpdatedAt}
-            quickActions={[
-              { label: "Create Event", onClick: () => setActiveTab("events") },
-              {
-                label: "Write Blog Post",
-                onClick: () => setActiveTab("blog"),
-                className:
-                  "bg-blue-50 dark:bg-blue-900/20 text-sharda-blue hover:bg-blue-100",
-              },
-              {
-                label: "Add Member",
-                onClick: () => setActiveTab("members"),
-                className:
-                  "bg-green-50 dark:bg-green-900/20 text-green-600 hover:bg-green-100",
-              },
-              {
-                label: "Upload Photo",
-                onClick: () => setActiveTab("gallery"),
-                className:
-                  "bg-purple-50 dark:bg-purple-900/20 text-purple-600 hover:bg-purple-100",
-              },
-            ]}
+            quickActions={quickActions}
+          />
+        );
+      case "admins":
+        return (
+          <AdminsManager
+            admins={admins}
+            onCreate={(data) => handleCreate("admins", data)}
+            onEdit={(id, data) => handleUpdate("admins", id, data)}
+            onDelete={(id) => handleDelete("admins", id)}
+            isLoading={isDashboardLoading}
           />
         );
       case "events":
@@ -536,6 +674,17 @@ const Admin = () => {
             isLoading={isDashboardLoading}
           />
         );
+      case "resources":
+        return (
+          <ResourcesManager
+            resources={resources}
+            onCreate={(data) => handleCreate("resources", data)}
+            onEdit={(id, data) => handleUpdate("resources", id, data)}
+            onDelete={(id) => handleDelete("resources", id)}
+            isLoading={isDashboardLoading}
+            isSuperAdmin={admin?.admin_type === 'super_admin'}
+          />
+        );
       default:
         return <div>Select a tab</div>;
     }
@@ -546,6 +695,10 @@ const Admin = () => {
       title: "Dashboard",
       subtitle:
         "Quick overview of events, members, posts, and gallery content.",
+    },
+    admins: {
+      title: "Admin Management",
+      subtitle: "Manage admin users and their access levels to the system.",
     },
     events: {
       title: "Events",
@@ -564,6 +717,10 @@ const Admin = () => {
     gallery: {
       title: "Gallery",
       subtitle: "Upload and curate photos for the gallery section.",
+    },
+    resources: {
+      title: "Resources",
+      subtitle: "Manage community-submitted learning resources and tools.",
     },
   };
 

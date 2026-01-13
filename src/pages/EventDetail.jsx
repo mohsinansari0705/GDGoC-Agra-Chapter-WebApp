@@ -10,6 +10,7 @@ import {
   ExternalLink,
   Award,
   Target,
+  Share2,
 } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 
@@ -17,198 +18,101 @@ const EventDetail = () => {
   const { eventId } = useParams();
   const location = useLocation();
   const [dbEvent, setDbEvent] = useState(null);
-
-  const isUuid = useMemo(
-    () =>
-      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
-        String(eventId || "")
-      ),
-    [eventId]
-  );
-
-  // Mock event data - In production, this would come from an API or state management
-  const eventsDatabase = {
-    "techsprint-2026": {
-      title: "TechSprint",
-      tagline: "HACKATHON",
-      date: "Jan 30, 2026",
-      endDate: "Feb 1, 2026",
-      time: "9:00 AM onwards",
-      location: "SRM Campus, Agra",
-      participants: "500+ Expected",
-      status: "Registrations Open",
-      color: "from-red-500 to-orange-500",
-      description:
-        "An open-innovation hackathon where students developers get 36 hours to learn, collaborate, and compete in one of the most exciting student hackathon around. Organized by GDG on Campus SRM Institute of Science and Technology - Sharda University, Agra. Participate in full flow, take up real-life problems and use the latest and greatest technologies from Google, and other partners and get a chance to win from massive pool prizes, and learn like never before!",
-      schedule: [
-        {
-          title: "Registration and Team Formation",
-          date: "Dec 20, 2025 - Jan 25, 2026",
-          time: "Dec 25 12:00 PM",
-          description:
-            "Register as a team or as individuals and let the organizers help you form a team of 2-4.",
-          type: "external",
-        },
-        {
-          title: "Project Submission",
-          date: "Dec 25, 2025 - Jan 25, 2026",
-          time: "Jan 26 10:00 PM",
-          description:
-            "Email the submission guidelines and quickly log by the deadline",
-          type: "external",
-        },
-        {
-          title: "Initial Evaluation",
-          date: "Jan 26, 12:00 PM - Jan 27, 8:00 PM",
-          time: "External",
-          description:
-            "Evaluation of the submissions on the judging parameters",
-          type: "external",
-        },
-        {
-          title: "Top 10 Announcement",
-          date: "Jan 28, 2026 - Jan 28, 6:00 PM",
-          time: "External",
-          description: "Initial 10 of the top 10 performing teams",
-          type: "external",
-        },
-        {
-          title: "Top 10 Teams Final Pitching",
-          date: "Jan 30, 2026 - Jan 30, 8:00 PM",
-          time: "External",
-          description: "Final showdown and evaluation of the top 3 projects",
-          type: "external",
-        },
-        {
-          title: "Final Announcement of Winners",
-          date: "Feb 1, 2026 - Feb 1, 8:00 PM",
-          time: "External",
-          description: "Final announcement of the top 3 teams",
-          type: "external",
-        },
-      ],
-      prizes: [
-        { position: "1st Place", amount: "₹50,000", icon: "🥇" },
-        { position: "2nd Place", amount: "₹30,000", icon: "🥈" },
-        { position: "3rd Place", amount: "₹20,000", icon: "🥉" },
-      ],
-      themes: [
-        "Healthcare & Wellness",
-        "Education Technology",
-        "Sustainable Development",
-        "Fintech Innovation",
-        "Smart Cities",
-        "Open Innovation",
-      ],
-    },
-    "vividglyph-2025": {
-      title: "VividGlyph",
-      tagline: "HACKATHON",
-      date: "Sep 15, 2025",
-      time: "11:00 AM",
-      location: "SRM Campus, Agra",
-      participants: "450+ Participated",
-      status: "Completed",
-      color: "from-blue-500 to-cyan-500",
-      description:
-        "VividGlyph is a 24-hour long, one-of-a-kind Inter college Designathon. Open to all design aficionados to put problem-solving skills to the test and use design to solve real-world problems.",
-      schedule: [
-        {
-          title: "Registration Opens",
-          date: "Aug 20, 2025",
-          time: "10:00 AM",
-          description: "Registration portal opens for all participants",
-          type: "external",
-        },
-        {
-          title: "Design Challenge Begins",
-          date: "Sep 15, 2025",
-          time: "11:00 AM",
-          description: "Participants receive the design challenge",
-          type: "external",
-        },
-        {
-          title: "Mid-Event Checkpoint",
-          date: "Sep 15, 2025",
-          time: "11:00 PM",
-          description: "Teams present their progress to mentors",
-          type: "external",
-        },
-        {
-          title: "Final Submissions",
-          date: "Sep 16, 2025",
-          time: "11:00 AM",
-          description: "Teams submit their final designs",
-          type: "external",
-        },
-      ],
-      prizes: [
-        { position: "1st Place", amount: "₹25,000", icon: "🥇" },
-        { position: "2nd Place", amount: "₹15,000", icon: "🥈" },
-        { position: "3rd Place", amount: "₹10,000", icon: "🥉" },
-      ],
-    },
-  };
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     let isMounted = true;
 
     const load = async () => {
-      if (!supabase) return;
-      if (!isUuid) return;
+      if (!supabase) {
+        setError("Database connection not available");
+        setLoading(false);
+        return;
+      }
+      
+      if (!eventId) {
+        setError("Invalid event ID");
+        setLoading(false);
+        return;
+      }
 
       try {
-        let base = location?.state?.event || null;
+        setLoading(true);
+        setError(null);
+        
+        // Try to fetch event by slug first, then by id
+        let { data, error: fetchError } = await supabase
+          .from("events")
+          .select(
+            "id,slug,title,category,status,description,date,end_date,time,location,cover_image_url,banner_image_url,registration_link,color,tags"
+          )
+          .eq("slug", eventId)
+          .in("status", ["upcoming", "live", "completed"])
+          .maybeSingle();
 
-        if (!base) {
-          const { data, error } = await supabase
+        // If not found by slug, try by id
+        if (!data && !fetchError) {
+          const result = await supabase
             .from("events")
             .select(
-              "id,title,category,status,description,date,end_date,time,location,participants,image_url,registration_link,color"
+              "id,slug,title,category,status,description,date,end_date,time,location,cover_image_url,banner_image_url,registration_link,color,tags"
             )
             .eq("id", eventId)
+            .in("status", ["upcoming", "live", "completed"])
             .maybeSingle();
-
-          if (error) throw error;
-          if (!data) return;
-
-          base = {
-            id: data.id,
-            title: data.title || "",
-            category: data.category || "",
-            status: data.status || "",
-            description: data.description || "",
-            date: data.date || "",
-            endDate: data.end_date || "",
-            time: data.time || "",
-            location: data.location || "",
-            participants: data.participants || "",
-            image: data.image_url || "",
-            registrationLink: data.registration_link || "",
-            color: data.color || "from-blue-500 to-cyan-500",
-          };
+          
+          data = result.data;
+          fetchError = result.error;
         }
+
+        if (fetchError) throw fetchError;
+        if (!data) {
+          setError("Event not found");
+          setLoading(false);
+          return;
+        }
+
+        const base = {
+          id: data.id,
+          slug: data.slug || data.id,
+          title: data.title || "",
+          category: data.category || "",
+          status: data.status || "",
+          description: data.description || "",
+          date: data.date || "",
+          endDate: data.end_date || "",
+          time: data.time || "",
+          location: data.location || "",
+          image: data.cover_image_url || "",
+          bannerImage: data.banner_image_url || data.cover_image_url || "",
+          registrationLink: data.registration_link || "",
+          color: data.color || "from-blue-500 to-cyan-500",
+          tags: Array.isArray(data.tags) ? data.tags : [],
+        };
 
         const [timelineRes, themesRes, prizesRes] = await Promise.all([
           supabase
             .from("event_timeline_items")
             .select("title,date,time,description,label,order_index")
-            .eq("event_id", eventId)
+            .eq("event_id", data.id)
             .order("order_index", { ascending: true }),
           supabase
             .from("event_themes")
             .select("theme,order_index")
-            .eq("event_id", eventId)
+            .eq("event_id", data.id)
             .order("order_index", { ascending: true }),
           supabase
             .from("event_prizes")
             .select("position,amount,description,icon,order_index")
-            .eq("event_id", eventId)
+            .eq("event_id", data.id)
             .order("order_index", { ascending: true }),
         ]);
 
         const anyErr = timelineRes.error || themesRes.error || prizesRes.error;
-        if (anyErr) throw anyErr;
+        if (anyErr) {
+          console.error("Error fetching event sub-data:", anyErr);
+        }
 
         const schedule = (timelineRes.data || [])
           .map((row) => ({
@@ -219,6 +123,9 @@ const EventDetail = () => {
             type: row.label || "",
           }))
           .filter((row) => row.title);
+        
+        console.log("Timeline data fetched:", timelineRes.data);
+        console.log("Mapped schedule:", schedule);
 
         const themes = (themesRes.data || [])
           .map((row) => (row.theme || "").trim())
@@ -235,16 +142,25 @@ const EventDetail = () => {
 
         const mapped = {
           ...base,
-          tagline: base.tagline || base.category || "EVENT",
+          tagline: base.category || "EVENT",
           schedule,
           themes,
           prizes,
         };
 
+        console.log("Final mapped event object:", mapped);
+        console.log("Schedule array:", schedule);
+        console.log("Schedule length:", schedule?.length);
+
         if (!isMounted) return;
         setDbEvent(mapped);
-      } catch {
-        // Keep fallback data on any error
+        setLoading(false);
+      } catch (err) {
+        console.error("Error fetching event details:", err);
+        if (isMounted) {
+          setError("Failed to load event details");
+          setLoading(false);
+        }
       }
     };
 
@@ -253,17 +169,53 @@ const EventDetail = () => {
     return () => {
       isMounted = false;
     };
-  }, [eventId, isUuid, location?.state?.event]);
+  }, [eventId]);
 
-  const event =
-    dbEvent ||
-    location?.state?.event ||
-    eventsDatabase[eventId] ||
-    eventsDatabase["techsprint-2026"];
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-google-blue mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400">Loading event details...</p>
+        </div>
+      </div>
+    );
+  }
 
-  const coverImage =
-    String(event?.image || event?.image_url || "").trim() ||
-    "https://via.placeholder.com/1200x600/4285F4/ffffff?text=Event";
+  // Show error state
+  if (error || !dbEvent) {
+    return (
+      <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center">
+        <div className="text-center px-4">
+          <Calendar className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+            {error || "Event not found"}
+          </h2>
+          <p className="text-gray-600 dark:text-gray-400 mb-6">
+            The event you're looking for doesn't exist or has been removed.
+          </p>
+          <Link
+            to="/events"
+            className="inline-flex items-center px-6 py-3 bg-google-blue text-white rounded-lg hover:bg-blue-600 transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Events
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  const event = dbEvent;
+  const coverImage = String(event?.bannerImage || event?.image || "").trim();
+
+  // Format date helper
+  const formatDate = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  };
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900 transition-colors duration-300 font-sans relative">
@@ -304,75 +256,101 @@ const EventDetail = () => {
                 className="max-w-4xl"
             >
                 <span className="inline-block px-4 py-1.5 rounded-full bg-google-blue/90 text-white text-sm font-bold mb-6 shadow-lg shadow-blue-900/20 backdrop-blur-sm border border-white/10 tracking-wide uppercase">
-                  {event.tagline || event.category || "EVENT"}
+                  {(event.tagline || event.category || "EVENT").toUpperCase()}
                 </span>
                 <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold text-white mb-4 leading-tight tracking-tight drop-shadow-xl">
                 {event.title}
                 </h1>
-                 <p className="text-lg md:text-xl text-gray-200 max-w-2xl line-clamp-2 drop-shadow-md">
-                    {event.description}
-                </p>
+                 {Array.isArray(event.tags) && event.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-6">
+                    {event.tags.map((tag, index) => (
+                      <motion.span
+                        key={index}
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: index * 0.1 }}
+                        whileHover={{ scale: 1.05 }}
+                        className="inline-flex items-center px-4 py-2 rounded-xl bg-white/15 backdrop-blur-md border border-white/30 text-white text-sm font-semibold shadow-lg hover:bg-white/25 transition-all cursor-default"
+                      >
+                        <span className="text-google-blue mr-1.5 text-base">#</span>
+                        {tag}
+                      </motion.span>
+                    ))}
+                  </div>
+                )}
             </motion.div>
         </div>
       </div>
 
-       {/* Floating Info Bar */}
+       {/* Floating Info Bar - Enhanced */}
        <div className="-mt-24 relative z-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto mb-20">
             <motion.div 
                 initial={{ opacity: 0, y: 40 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.2, type: "spring", bounce: 0.4 }}
-                className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl rounded-2xl shadow-2xl shadow-black/10 dark:shadow-black/30 border border-white/20 dark:border-gray-700 p-6 lg:p-8 flex flex-col lg:flex-row items-center justify-between gap-8"
+                className="relative bg-gradient-to-br from-white via-white to-gray-50 dark:from-gray-800 dark:via-gray-800 dark:to-gray-900 backdrop-blur-xl rounded-3xl shadow-2xl shadow-black/10 dark:shadow-black/40 border border-gray-200/50 dark:border-gray-700/50 p-8 lg:p-10 overflow-hidden"
             >
-               <div className="grid grid-cols-2 md:grid-cols-4 gap-8 w-full lg:w-auto">
-                    <div className="flex flex-col gap-1">
-                         <div className="flex items-center gap-2 text-google-blue mb-1">
-                             <Calendar className="w-5 h-5" />
-                             <span className="text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500">Date</span>
+                {/* Decorative Background Elements */}
+                <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-google-blue/5 to-transparent rounded-full blur-3xl"></div>
+                <div className="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-tr from-google-red/5 to-transparent rounded-full blur-3xl"></div>
+                
+                <div className="relative flex flex-col lg:flex-row lg:items-center gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 flex-1">
+                        <motion.div 
+                            whileHover={{ y: -4, scale: 1.05 }}
+                            className="flex flex-col gap-2 p-4 rounded-2xl bg-gradient-to-br from-google-blue/10 to-transparent hover:from-google-blue/20 transition-all border border-google-blue/20 hover:border-google-blue/40"
+                        >
+                         <div className="flex items-center gap-2 mb-1">
+                             <Calendar className="w-5 h-5 text-google-blue" />
+                             <span className="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">Date</span>
                          </div>
-                         <p className="font-bold text-gray-900 dark:text-white text-lg">{event.date.split(',')[0]}</p>
-                    </div>
+                         <p className="font-bold text-gray-900 dark:text-white text-base">
+                           {formatDate(event.date)}
+                           {event.endDate && event.endDate !== event.date && (
+                             <span className="font-normal"> To {formatDate(event.endDate)}</span>
+                           )}
+                         </p>
+                    </motion.div>
                     
-                    <div className="flex flex-col gap-1">
-                         <div className="flex items-center gap-2 text-google-red mb-1">
-                             <Clock className="w-5 h-5" />
-                             <span className="text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500">Time</span>
+                    <motion.div 
+                        whileHover={{ y: -4, scale: 1.05 }}
+                        className="flex flex-col gap-2 p-4 rounded-2xl bg-gradient-to-br from-google-red/10 to-transparent hover:from-google-red/20 transition-all border border-google-red/20 hover:border-google-red/40"
+                    >
+                         <div className="flex items-center gap-2 mb-1">
+                             <Clock className="w-5 h-5 text-google-red" />
+                             <span className="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">Time</span>
                          </div>
                          <p className="font-bold text-gray-900 dark:text-white text-lg">{event.time}</p>
-                    </div>
+                    </motion.div>
 
-                    <div className="flex flex-col gap-1">
-                         <div className="flex items-center gap-2 text-google-green mb-1">
-                             <MapPin className="w-5 h-5" />
-                             <span className="text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500">Location</span>
+                    <motion.div 
+                        whileHover={{ y: -4, scale: 1.05 }}
+                        className="flex flex-col gap-2 p-4 rounded-2xl bg-gradient-to-br from-google-green/10 to-transparent hover:from-google-green/20 transition-all border border-google-green/20 hover:border-google-green/40"
+                    >
+                         <div className="flex items-center gap-2 mb-1">
+                             <MapPin className="w-5 h-5 text-google-green" />
+                             <span className="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">Location</span>
                          </div>
-                         <p className="font-bold text-gray-900 dark:text-white text-lg truncate max-w-[150px]" title={event.location}>{event.location}</p>
+                         <p className="font-bold text-gray-900 dark:text-white text-lg line-clamp-2">{event.location}</p>
+                    </motion.div>
                     </div>
 
-                     <div className="flex flex-col gap-1">
-                         <div className="flex items-center gap-2 text-google-yellow mb-1">
-                             <Users className="w-5 h-5" />
-                             <span className="text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500">Joined</span>
-                         </div>
-                         <p className="font-bold text-gray-900 dark:text-white text-lg">{event.participants}</p>
-                    </div>
-               </div>
-
-                {event?.registrationLink && event.registrationLink !== "#" && (
-                  <motion.a
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    href={event.registrationLink}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="w-full lg:w-auto px-8 py-4 bg-gradient-to-r from-google-blue to-blue-600 text-white rounded-xl font-bold text-lg hover:shadow-lg hover:shadow-blue-500/25 transition-all flex items-center justify-center whitespace-nowrap group"
-                  >
-                    Register Now
-                    <ExternalLink className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                  </motion.a>
-                )}
+                    {event?.registrationLink && event.registrationLink !== "#" && (
+                      <motion.a
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        href={event.registrationLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full lg:w-auto px-8 py-4 bg-gradient-to-r from-google-blue to-blue-600 text-white rounded-xl font-bold text-lg hover:shadow-xl hover:shadow-blue-500/30 transition-all flex items-center justify-center gap-2 group whitespace-nowrap"
+                      >
+                        Register Now
+                        <ExternalLink className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                      </motion.a>
+                    )}
+                </div>
             </motion.div>
-       </div>
+        </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-32">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
@@ -389,12 +367,47 @@ const EventDetail = () => {
                 About This Event
               </h2>
               <div className="prose prose-lg dark:prose-invert max-w-none text-gray-600 dark:text-gray-300 leading-relaxed">
-                <p>{event.description}</p>
+                <div className="whitespace-pre-wrap">{event.description}</div>
               </div>
             </motion.section>
 
+            {/* Themes/Problem Statements (if available) - MOVED ABOVE SCHEDULE */}
+            {Array.isArray(event.themes) && event.themes.length > 0 && (
+              <motion.section
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.3 }}
+              >
+                <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-3">
+                   <span className="w-2 h-8 rounded-full bg-google-red"></span>
+                  Problem Statements
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {event.themes.map((theme, index) => (
+                    <motion.div
+                      key={index}
+                      whileHover={{ scale: 1.02, y: -5 }}
+                      className="bg-white dark:bg-gray-800 p-6 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-xs hover:shadow-xl transition-all duration-300 flex items-start group"
+                    >
+                         <div className="w-12 h-12 rounded-2xl bg-red-50 dark:bg-red-900/20 flex items-center justify-center mr-4 shrink-0 group-hover:rotate-12 transition-transform">
+                             <Target className="w-6 h-6 text-google-red" />
+                         </div>
+                        <span className="font-bold text-gray-900 dark:text-white text-lg mt-2 group-hover:text-google-red transition-colors">
+                          {theme}
+                        </span>
+                    </motion.div>
+                  ))}
+                </div>
+              </motion.section>
+            )}
+
             {/* Event Schedule */}
-            {Array.isArray(event.schedule) && event.schedule.length > 0 && (
+            {(() => {
+              console.log("Render check - event.schedule:", event.schedule);
+              console.log("Is array?", Array.isArray(event.schedule));
+              console.log("Length:", event.schedule?.length);
+              return Array.isArray(event.schedule) && event.schedule.length > 0;
+            })() && (
               <motion.section
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -442,36 +455,6 @@ const EventDetail = () => {
                           {item.description}
                         </p>
                       </div>
-                    </motion.div>
-                  ))}
-                </div>
-              </motion.section>
-            )}
-
-            {/* Themes (if available) */}
-            {Array.isArray(event.themes) && event.themes.length > 0 && (
-              <motion.section
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.4 }}
-              >
-                <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-3">
-                   <span className="w-2 h-8 rounded-full bg-google-red"></span>
-                  Problem Statements
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {event.themes.map((theme, index) => (
-                    <motion.div
-                      key={index}
-                      whileHover={{ scale: 1.02, y: -5 }}
-                      className="bg-white dark:bg-gray-800 p-6 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-xs hover:shadow-xl transition-all duration-300 flex items-start group"
-                    >
-                         <div className="w-12 h-12 rounded-2xl bg-red-50 dark:bg-red-900/20 flex items-center justify-center mr-4 shrink-0 group-hover:rotate-12 transition-transform">
-                             <Target className="w-6 h-6 text-google-red" />
-                         </div>
-                        <span className="font-bold text-gray-900 dark:text-white text-lg mt-2 group-hover:text-google-red transition-colors">
-                          {theme}
-                        </span>
                     </motion.div>
                   ))}
                 </div>
@@ -525,52 +508,39 @@ const EventDetail = () => {
               transition={{ duration: 0.6, delay: 0.4 }}
               className="bg-gray-50 dark:bg-gray-800 p-6 rounded-xl"
             >
-              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                <Share2 className="w-5 h-5" />
                 Share This Event
               </h3>
               <div className="flex gap-3">
-                <button className="flex-1 bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition-colors">
+                <button
+                  onClick={() => {
+                    const url = window.location.href;
+                    const text = `Check out ${event.title} - ${event.description.substring(0, 100)}...`;
+                    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(text + ' ' + url)}`;
+                    window.open(whatsappUrl, '_blank');
+                  }}
+                  className="flex-1 bg-green-500 text-white py-3 rounded-lg hover:bg-green-600 transition-colors flex items-center justify-center gap-2 font-semibold"
+                >
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
+                  </svg>
+                  WhatsApp
+                </button>
+                <button
+                  onClick={() => {
+                    const url = window.location.href;
+                    const text = `Check out ${event.title}`;
+                    const linkedinUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`;
+                    window.open(linkedinUrl, '_blank');
+                  }}
+                  className="flex-1 bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 font-semibold"
+                >
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                  </svg>
                   LinkedIn
                 </button>
-                <button className="flex-1 bg-blue-400 text-white py-2 rounded-lg hover:bg-blue-500 transition-colors">
-                  Twitter
-                </button>
-              </div>
-            </motion.div>
-
-            {/* Related Events */}
-            <motion.div
-              initial={{ opacity: 0, x: 30 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, delay: 0.5 }}
-              className="bg-gray-50 dark:bg-gray-800 p-6 rounded-xl"
-            >
-              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-                Related Events
-              </h3>
-              <div className="space-y-3">
-                <Link
-                  to="/events/vividglyph-2025"
-                  className="block p-3 bg-white dark:bg-gray-700 rounded-lg hover:shadow-md transition-shadow"
-                >
-                  <p className="font-semibold text-gray-900 dark:text-white">
-                    VividGlyph
-                  </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Sep 15, 2025
-                  </p>
-                </Link>
-                <Link
-                  to="/events/google-cloud-study-jams"
-                  className="block p-3 bg-white dark:bg-gray-700 rounded-lg hover:shadow-md transition-shadow"
-                >
-                  <p className="font-semibold text-gray-900 dark:text-white">
-                    Google Cloud Study Jams
-                  </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Oct 1, 2025
-                  </p>
-                </Link>
               </div>
             </motion.div>
           </div>
