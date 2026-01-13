@@ -214,7 +214,7 @@ const Builder = () => {
 
                 {/* Email */}
                 <motion.a
-                  href="mailto:your.email@example.com"
+                  href="mailto:code.mohsinansari0705@gmail.com"
                   whileHover={{ scale: 1.02, y: -2 }}
                   whileTap={{ scale: 0.98 }}
                   className="flex items-center gap-4 p-4 bg-gradient-to-r from-google-red to-red-600 text-white rounded-xl hover:shadow-xl transition-all group"
