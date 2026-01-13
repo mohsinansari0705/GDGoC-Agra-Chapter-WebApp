@@ -34,3 +34,40 @@ using (
   bucket_id = 'event-images'
   and public.is_admin_or_above()
 );
+
+-- ============================================================================
+-- MEMBER PROFILE IMAGES STORAGE RLS POLICIES
+-- ============================================================================
+
+-- Public can view/download member profile images
+drop policy if exists "member_profiles_public_select" on storage.objects;
+create policy "member_profiles_public_select"
+on storage.objects for select
+using (bucket_id = 'member-profiles');
+
+-- Only super_admin can upload member profile images
+drop policy if exists "member_profiles_admin_insert" on storage.objects;
+create policy "member_profiles_admin_insert"
+on storage.objects for insert
+with check (
+  bucket_id = 'member-profiles'
+  and public.is_super_admin()
+);
+
+-- Only super_admin can update member profile images
+drop policy if exists "member_profiles_admin_update" on storage.objects;
+create policy "member_profiles_admin_update"
+on storage.objects for update
+using (
+  bucket_id = 'member-profiles'
+  and public.is_super_admin()
+);
+
+-- Only super_admin can delete member profile images
+drop policy if exists "member_profiles_admin_delete" on storage.objects;
+create policy "member_profiles_admin_delete"
+on storage.objects for delete
+using (
+  bucket_id = 'member-profiles'
+  and public.is_super_admin()
+);

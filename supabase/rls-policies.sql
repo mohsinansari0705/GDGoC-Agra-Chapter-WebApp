@@ -7,8 +7,8 @@ alter table public.events enable row level security;
 alter table public.event_timeline_items enable row level security;
 alter table public.event_themes enable row level security;
 alter table public.event_prizes enable row level security;
-
 alter table public.members enable row level security;
+
 alter table public.blog_posts enable row level security;
 alter table public.gallery_items enable row level security;
 alter table public.resources enable row level security;
@@ -143,18 +143,35 @@ with check (public.is_admin_or_above());
 -- MEMBERS POLICIES
 -- ============================================================================
 
--- Public can view all members
+-- Public can view active members only
 drop policy if exists "members_public_select" on public.members;
 create policy "members_public_select" on public.members
 for select
-using (true);
+using (is_active = true);
 
--- Only super_admin can insert/update/delete members
-drop policy if exists "members_super_admin_all" on public.members;
-create policy "members_super_admin_all" on public.members
-for all
-using (public.is_super_admin())
+-- Super admin can view all members (including inactive)
+drop policy if exists "members_admin_select" on public.members;
+create policy "members_admin_select" on public.members
+for select
+using (public.is_super_admin());
+
+-- Only super_admin can insert members
+drop policy if exists "members_super_admin_insert" on public.members;
+create policy "members_super_admin_insert" on public.members
+for insert
 with check (public.is_super_admin());
+
+-- Only super_admin can update members
+drop policy if exists "members_super_admin_update" on public.members;
+create policy "members_super_admin_update" on public.members
+for update
+using (public.is_super_admin());
+
+-- Only super_admin can delete members
+drop policy if exists "members_super_admin_delete" on public.members;
+create policy "members_super_admin_delete" on public.members
+for delete
+using (public.is_super_admin());
 
 -- ============================================================================
 -- BLOG POSTS POLICIES

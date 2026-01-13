@@ -2,10 +2,6 @@
 -- ADMIN SYSTEM FUNCTIONS
 -- ============================================================================
 
--- ============================================================================
--- RLS HELPER FUNCTIONS (using Supabase Auth)
--- ============================================================================
-
 -- Function to check if current user is super admin
 create or replace function public.is_super_admin()
 returns boolean as $$
@@ -55,6 +51,7 @@ create or replace function public.get_current_admin_type()
 returns text as $$
   select admin_type from public.admins where user_id = auth.uid() and is_active = true limit 1;
 $$ language sql security definer stable;
+
 
 -- ============================================================================
 -- ADMIN LOGIN & MANAGEMENT FUNCTIONS
@@ -328,5 +325,289 @@ begin
   if target_user_id is not null then
     delete from auth.users where id = target_user_id;
   end if;
+end;
+$$ language plpgsql security definer;
+
+
+-- ============================================================================
+-- MEMBERS MANAGEMENT FUNCTIONS
+-- ============================================================================
+
+-- Function to get all members grouped and ordered by team hierarchy
+create or replace function public.get_members_hierarchy()
+returns table(
+  id uuid,
+  name text,
+  email text,
+  profile_image_url text,
+  linkedin_url text,
+  github_url text,
+  twitter_url text,
+  bio text,
+  team_name text,
+  "position" text,
+  display_order int,
+  is_active boolean
+) as $$
+begin
+  return query
+  select 
+    m.id,
+    m.name,
+    m.email,
+    m.profile_image_url,
+    m.linkedin_url,
+    m.github_url,
+    m.twitter_url,
+    m.bio,
+    m.team_name,
+    m."position",
+    m.display_order,
+    m.is_active
+  from public.members m
+  where m.is_active = true
+  order by 
+    -- First: Lead Organizer
+    case when m.team_name = 'Lead Organizer' then 0 else 1 end,
+    -- Then: Team order
+    case m.team_name
+      when 'Lead Organizer' then 0
+      when 'Technical Team' then 1
+      when 'Events & Operations Team' then 2
+      when 'PR & Outreach Team' then 3
+      when 'Social Media & Content Team' then 4
+      when 'Design & Editing Team' then 5
+      when 'Disciplinary Committee' then 6
+      else 7
+    end,
+    -- Within team: position order (lead/head, co-head, executive)
+    case m."position"
+      when 'lead' then 0
+      when 'head' then 1
+      when 'co-head' then 2
+      when 'executive' then 3
+      else 4
+    end,
+    -- Finally: display_order for same position members
+    m.display_order,
+    m.name;
+end;
+$$ language plpgsql security definer stable;
+
+-- Function to add a new member (super_admin only)
+create or replace function public.add_member(
+  p_name text,
+  p_email text,
+  p_profile_image_url text,
+  p_linkedin_url text,
+  p_github_url text,
+  p_twitter_url text,
+  p_bio text,
+  p_team_name text,
+  p_position text,
+  p_display_order int default 0
+)
+returns uuid as $$
+declare
+  new_member_id uuid;
+  current_admin_id uuid;
+begin
+  -- Check if caller is super_admin
+  if not public.is_super_admin() then
+    raise exception 'Only super admins can add members';
+  end if;
+  
+  -- Get current admin id
+  select id into current_admin_id 
+  from public.admins 
+  where user_id = auth.uid() and is_active = true;
+  
+  -- Insert new member
+  insert into public.members (
+    name, email, profile_image_url, linkedin_url, github_url, 
+    twitter_url, bio, team_name, position, display_order, 
+    is_active, created_by
+  )
+  values (
+    p_name, p_email, p_profile_image_url, p_linkedin_url, p_github_url,
+    p_twitter_url, p_bio, p_team_name, p_position, p_display_order,
+    true, current_admin_id
+  )
+  returning id into new_member_id;
+  
+  return new_member_id;
+end;
+$$ language plpgsql security definer;
+
+-- Function to update member (super_admin only)
+create or replace function public.update_member(
+  p_member_id uuid,
+  p_name text,
+  p_email text,
+  p_profile_image_url text,
+  p_linkedin_url text,
+  p_github_url text,
+  p_twitter_url text,
+  p_bio text,
+  p_team_name text,
+  p_position text,
+  p_display_order int,
+  p_is_active boolean
+)
+returns void as $$
+begin
+  -- Check if caller is super_admin
+  if not public.is_super_admin() then
+    raise exception 'Only super admins can update members';
+  end if;
+  
+  -- Update member
+  update public.members
+  set
+    name = p_name,
+    email = p_email,
+    profile_image_url = p_profile_image_url,
+    linkedin_url = p_linkedin_url,
+    github_url = p_github_url,
+    twitter_url = p_twitter_url,
+    bio = p_bio,
+    team_name = p_team_name,
+    position = p_position,
+    display_order = p_display_order,
+    is_active = p_is_active,
+    updated_at = now()
+  where id = p_member_id;
+end;
+$$ language plpgsql security definer;
+
+-- Function to delete member (super_admin only)
+create or replace function public.delete_member(p_member_id uuid)
+returns void as $$
+begin
+  -- Check if caller is super_admin
+  if not public.is_super_admin() then
+    raise exception 'Only super admins can delete members';
+  end if;
+  
+  -- Delete member
+  delete from public.members where id = p_member_id;
+end;
+$$ language plpgsql security definer;
+
+-- Function to toggle member active status (super_admin only)
+create or replace function public.toggle_member_status(p_member_id uuid)
+returns boolean as $$
+declare
+  new_status boolean;
+begin
+  -- Check if caller is super_admin
+  if not public.is_super_admin() then
+    raise exception 'Only super admins can toggle member status';
+  end if;
+  
+  -- Toggle status
+  update public.members
+  set is_active = not is_active, updated_at = now()
+  where id = p_member_id
+  returning is_active into new_status;
+  
+  return new_status;
+end;
+$$ language plpgsql security definer;
+
+-- Function to get members by specific team
+create or replace function public.get_members_by_team(p_team_name text)
+returns table(
+  id uuid,
+  name text,
+  email text,
+  profile_image_url text,
+  linkedin_url text,
+  github_url text,
+  twitter_url text,
+  bio text,
+  team_name text,
+  "position" text,
+  display_order int
+) as $$
+begin
+  return query
+  select 
+    m.id, m.name, m.email, m.profile_image_url,
+    m.linkedin_url, m.github_url, m.twitter_url,
+    m.bio, m.team_name, m."position", m.display_order
+  from public.members m
+  where m.team_name = p_team_name
+    and m.is_active = true
+  order by 
+    case m."position"
+      when 'lead' then 0
+      when 'head' then 1
+      when 'co-head' then 2
+      when 'executive' then 3
+      else 4
+    end,
+    m.display_order,
+    m.name;
+end;
+$$ language plpgsql security definer stable;
+
+-- Function to count members per team
+create or replace function public.get_team_member_counts()
+returns table(
+  team_name text,
+  total_members bigint,
+  heads_count bigint,
+  executives_count bigint
+) as $$
+begin
+  return query
+  select 
+    m.team_name,
+    count(*)::bigint as total_members,
+    count(*) filter (where m.position in ('lead', 'head', 'co-head'))::bigint as heads_count,
+    count(*) filter (where m.position = 'executive')::bigint as executives_count
+  from public.members m
+  where m.is_active = true
+  group by m.team_name
+  order by 
+    case m.team_name
+      when 'Lead Organizer' then 0
+      when 'Technical Team' then 1
+      when 'Events & Operations Team' then 2
+      when 'PR & Outreach Team' then 3
+      when 'Social Media & Content Team' then 4
+      when 'Design & Editing Team' then 5
+      when 'Disciplinary Committee' then 6
+      else 7
+    end;
+end;
+$$ language plpgsql security definer stable;
+
+-- Function to reorder members within a team/position
+create or replace function public.reorder_members(
+  p_member_ids uuid[],
+  p_new_orders int[]
+)
+returns void as $$
+declare
+  i int;
+begin
+  -- Check if caller is super_admin
+  if not public.is_super_admin() then
+    raise exception 'Only super admins can reorder members';
+  end if;
+  
+  -- Validate arrays have same length
+  if array_length(p_member_ids, 1) != array_length(p_new_orders, 1) then
+    raise exception 'Member IDs and orders arrays must have same length';
+  end if;
+  
+  -- Update display order for each member
+  for i in 1..array_length(p_member_ids, 1) loop
+    update public.members
+    set display_order = p_new_orders[i], updated_at = now()
+    where id = p_member_ids[i];
+  end loop;
 end;
 $$ language plpgsql security definer;

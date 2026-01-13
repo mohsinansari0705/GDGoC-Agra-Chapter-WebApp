@@ -176,3 +176,90 @@ create trigger prevent_published_event_deletion_trigger
 before delete on public.events
 for each row
 execute function public.prevent_published_event_deletion();
+
+
+-- ============================================================================
+-- MEMBERS SYSTEM TRIGGER FUNCTIONS
+-- ============================================================================
+
+-- 1. Auto-update updated_at timestamp for members
+create or replace function public.handle_members_updated_at()
+returns trigger as $$
+begin
+  new.updated_at = now();
+  return new;
+end;
+$$ language plpgsql;
+
+drop trigger if exists update_members_updated_at on public.members;
+create trigger update_members_updated_at
+before update on public.members
+for each row
+execute function public.handle_members_updated_at();
+
+-- 2. Validate member email uniqueness
+create or replace function public.validate_member_email()
+returns trigger as $$
+begin
+  -- Check if email already exists (excluding current record for updates)
+  if exists (
+    select 1 from public.members 
+    where lower(email) = lower(new.email) 
+    and id != coalesce(new.id, '00000000-0000-0000-0000-000000000000'::uuid)
+  ) then
+    raise exception 'Member with this email already exists';
+  end if;
+  
+  return new;
+end;
+$$ language plpgsql;
+
+drop trigger if exists validate_member_email_trigger on public.members;
+create trigger validate_member_email_trigger
+before insert or update on public.members
+for each row
+execute function public.validate_member_email();
+
+-- 3. Validate team and position combinations
+create or replace function public.validate_member_position()
+returns trigger as $$
+begin
+  -- Lead Organizer must have position 'lead'
+  if new.team_name = 'Lead Organizer' and new.position != 'lead' then
+    raise exception 'Lead Organizer must have position "lead"';
+  end if;
+  
+  -- Other teams cannot have position 'lead'
+  if new.team_name != 'Lead Organizer' and new.position = 'lead' then
+    raise exception 'Only Lead Organizer can have position "lead"';
+  end if;
+  
+  -- Check for duplicate head/co-head positions within same team
+  if new.position in ('head', 'co-head') then
+    if exists (
+      select 1 from public.members 
+      where team_name = new.team_name 
+      and position = new.position
+      and is_active = true
+      and id != coalesce(new.id, '00000000-0000-0000-0000-000000000000'::uuid)
+    ) then
+      raise exception 'Team already has an active % member', new.position;
+    end if;
+  end if;
+  
+  return new;
+end;
+$$ language plpgsql;
+
+drop trigger if exists validate_member_position_trigger on public.members;
+create trigger validate_member_position_trigger
+before insert or update on public.members
+for each row
+execute function public.validate_member_position();
+
+-- 4. Audit log for member changes
+drop trigger if exists audit_members_changes on public.members;
+create trigger audit_members_changes
+after insert or update or delete on public.members
+for each row
+execute function public.log_event_changes();

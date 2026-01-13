@@ -101,65 +101,47 @@ create table if not exists public.event_prizes (
 create index if not exists idx_prizes_event_id on public.event_prizes(event_id);
 
 
+-- ============================================================================
+-- MEMBERS TABLES
+-- ============================================================================
 
--- 5. members table (team members and executives)
+-- Members table (team members)
 create table if not exists public.members (
   id uuid primary key default gen_random_uuid(),
   name text not null,
-  team_name text,
-  team_head text,
-  team_head_image_url text,
-  team_head_linkedin_url text,
-  team_head_github_url text,
-  team_head_twitter_url text,
-  team_co_head text,
-  team_co_head_image_url text,
-  team_co_head_linkedin_url text,
-  team_co_head_github_url text,
-  team_co_head_twitter_url text,
-  executive_1 text,
-  executive_1_image_url text,
-  executive_1_linkedin_url text,
-  executive_1_github_url text,
-  executive_1_twitter_url text,
-  executive_2 text,
-  executive_2_image_url text,
-  executive_2_linkedin_url text,
-  executive_2_github_url text,
-  executive_2_twitter_url text,
-  executive_3 text,
-  executive_3_image_url text,
-  executive_3_linkedin_url text,
-  executive_3_github_url text,
-  executive_3_twitter_url text,
-  executive_4 text,
-  executive_4_image_url text,
-  executive_4_linkedin_url text,
-  executive_4_github_url text,
-  executive_4_twitter_url text,
-  executive_5 text,
-  executive_5_image_url text,
-  executive_5_linkedin_url text,
-  executive_5_github_url text,
-  executive_5_twitter_url text,
-  executive_6 text,
-  executive_6_image_url text,
-  executive_6_linkedin_url text,
-  executive_6_github_url text,
-  executive_6_twitter_url text,
-  executive_7 text,
-  executive_7_image_url text,
-  executive_7_linkedin_url text,
-  executive_7_github_url text,
-  executive_7_twitter_url text,
-  executive_8 text,
-  executive_8_image_url text,
-  executive_8_linkedin_url text,
-  executive_8_github_url text,
-  executive_8_twitter_url text,
+  email text not null unique,
+  profile_image_url text,
+  linkedin_url text,
+  github_url text,
+  x_url text,
+  bio text,
+  team_name text not null check (team_name in (
+    'Lead Organizer',
+    'Technical Team', 
+    'Events & Operations Team', 
+    'PR & Outreach Team', 
+    'Social Media & Content Team', 
+    'Design & Editing Team', 
+    'Disciplinary Committee'
+  )),
+  position text not null check (position in ('lead', 'head', 'co-head', 'executive')),
+  display_order int not null default 0,
+  is_active boolean default true,
   created_at timestamptz not null default now(),
-  created_by uuid references public.admins(id) not null
+  created_by uuid references public.admins(id) not null,
+  updated_at timestamptz default now()
 );
+-- Indexes for members table
+create index if not exists idx_members_team_name on public.members(team_name);
+create index if not exists idx_members_position on public.members(position);
+create index if not exists idx_members_active on public.members(is_active) where is_active = true;
+create index if not exists idx_members_team_order on public.members(team_name, position, display_order);
+create index if not exists idx_members_email on public.members(email);
+
+
+-- ============================================================================
+-- BLOG POSTS & OTHER TABLES
+-- ============================================================================
 
 -- BLOG POSTS
 create table if not exists public.blog_posts (
