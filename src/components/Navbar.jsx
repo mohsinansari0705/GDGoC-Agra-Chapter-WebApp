@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import React, { useState, useRef } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Moon, Sun, Menu, X, Users } from "lucide-react";
 import { useTheme } from "../context/ThemeContext";
 import { motion, AnimatePresence } from "framer-motion";
@@ -8,6 +8,34 @@ const Navbar = () => {
   const { theme, toggleTheme } = useTheme();
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  
+  // Easter egg: Track clicks on logo
+  const clickCountRef = useRef(0);
+  const clickTimerRef = useRef(null);
+
+  const handleLogoClick = (e) => {
+    e.preventDefault();
+    clickCountRef.current += 1;
+
+    // Reset counter after 2 seconds of inactivity
+    if (clickTimerRef.current) {
+      clearTimeout(clickTimerRef.current);
+    }
+    
+    clickTimerRef.current = setTimeout(() => {
+      clickCountRef.current = 0;
+    }, 2000);
+
+    // Navigate to builder page after 3 clicks
+    if (clickCountRef.current === 3) {
+      clickCountRef.current = 0;
+      navigate('/builder');
+    } else if (clickCountRef.current < 3) {
+      // Navigate to home on first two clicks
+      navigate('/');
+    }
+  };
 
   const navLinks = [
     { name: "Events", path: "/events" },
@@ -25,7 +53,7 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-3">
+          <Link to="/" onClick={handleLogoClick} className="flex items-center space-x-3 cursor-pointer">
             <div className="flex items-center">
               <svg
                 className="w-10 h-10"
