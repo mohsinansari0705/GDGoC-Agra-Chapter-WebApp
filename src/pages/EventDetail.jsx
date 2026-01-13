@@ -427,7 +427,7 @@ const EventDetail = () => {
                       transition={{ delay: index * 0.1 }}
                       className="relative group"
                     >
-                       <div className="absolute -left-[30px] top-0 w-6 h-6 rounded-full border-4 border-white dark:border-gray-900 bg-google-blue shadow-lg group-hover:scale-125 transition-transform duration-300"></div>
+                       <div className="absolute -left-[30px] top-0 w-6 h-6 rounded-full border-4 border-white dark:border-gray-900 bg-google-blue shadow-lg group-hover:scale-125 transition-transform duration-300 ring-2 ring-white dark:ring-gray-900"></div>
                       <div className="bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-750 p-6 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-xl transition-all duration-300">
                         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4">
                           <h3 className="text-xl font-bold text-gray-900 dark:text-white group-hover:text-google-blue transition-colors">
@@ -470,15 +470,15 @@ const EventDetail = () => {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.6, delay: 0.3 }}
-                className="bg-gray-900 rounded-3xl p-8 text-white relative overflow-hidden shadow-2xl"
+                className="bg-gradient-to-br from-google-yellow/10 via-yellow-50 to-amber-50 dark:from-gray-800 dark:via-gray-800 dark:to-gray-900 rounded-3xl p-8 relative overflow-hidden shadow-2xl border border-yellow-100 dark:border-gray-700"
               >
                  <div className="absolute top-0 right-0 w-64 h-64 bg-google-yellow/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
                 
                 <div className="flex items-center mb-8 relative z-10">
-                  <div className="p-2 bg-yellow-500/20 rounded-lg mr-3">
+                  <div className="p-2 bg-yellow-500/20 dark:bg-yellow-500/20 rounded-lg mr-3">
                       <Award className="w-6 h-6 text-google-yellow" />
                   </div>
-                  <h3 className="text-2xl font-bold">
+                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
                     Prizes
                   </h3>
                 </div>
@@ -488,12 +488,12 @@ const EventDetail = () => {
                     <motion.div
                       key={index}
                       whileHover={{ x: 5 }}
-                      className="bg-white/5 backdrop-blur-md p-5 rounded-2xl border border-white/10 flex items-center gap-4 hover:bg-white/10 transition-colors"
+                      className="bg-white/80 dark:bg-white/5 backdrop-blur-md p-5 rounded-2xl border border-yellow-200/50 dark:border-white/10 flex items-center gap-4 hover:bg-white dark:hover:bg-white/10 transition-colors shadow-sm hover:shadow-md"
                     >
                         <div className="text-4xl filter drop-shadow-md">{prize.icon}</div>
                         <div>
-                             <p className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-1">{prize.position}</p>
-                             <p className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-google-yellow to-yellow-200">{prize.amount}</p>
+                             <p className="text-xs text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider mb-1">{prize.position}</p>
+                             <p className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-google-yellow to-amber-600 dark:from-google-yellow dark:to-yellow-200">{prize.amount}</p>
                         </div>
                     </motion.div>
                   ))}
