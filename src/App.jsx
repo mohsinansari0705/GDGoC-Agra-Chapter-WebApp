@@ -9,6 +9,7 @@ import EventDetail from './pages/EventDetail';
 import Members from './pages/Members';
 import Gallery from './pages/Gallery';
 import Resources from './pages/Resources';
+import ResourceDetail from './pages/ResourceDetail';
 import Blog from './pages/Blog';
 import Contact from './pages/Contact';
 import Admin from './pages/Admin';
@@ -28,6 +29,7 @@ function App() {
               <Route path="/members" element={<Members />} />
               <Route path="/gallery" element={<Gallery />} />
               <Route path="/resources" element={<Resources />} />
+              <Route path="/resources/:slug" element={<ResourceDetail />} />
               <Route path="/blog" element={<Blog />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/admin" element={<Admin />} />
