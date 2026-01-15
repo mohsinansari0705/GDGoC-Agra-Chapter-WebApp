@@ -8,10 +8,10 @@ alter table public.event_timeline_items enable row level security;
 alter table public.event_themes enable row level security;
 alter table public.event_prizes enable row level security;
 alter table public.members enable row level security;
+alter table public.resources enable row level security;
 
 alter table public.blog_posts enable row level security;
 alter table public.gallery_items enable row level security;
-alter table public.resources enable row level security;
 
 
 -- ============================================================================

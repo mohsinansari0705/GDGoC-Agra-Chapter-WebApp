@@ -147,6 +147,7 @@ create index if not exists idx_members_email on public.members(email);
 -- Resources table (learning materials, tools, articles, etc.)
 create table if not exists public.resources (
   id uuid primary key default gen_random_uuid(),
+  slug text not null unique,
   title text not null,
   description text not null,
   link text not null,
@@ -173,6 +174,7 @@ create table if not exists public.resources (
   updated_at timestamptz default now()
 );
 -- Indexes for resources table
+create index if not exists idx_resources_slug on public.resources(slug);
 create index if not exists idx_resources_category on public.resources(category);
 create index if not exists idx_resources_type on public.resources(type);
 create index if not exists idx_resources_active on public.resources(is_active) where is_active = true;

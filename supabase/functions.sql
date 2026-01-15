@@ -628,6 +628,7 @@ $$ language plpgsql security definer;
 create or replace function public.get_resources_with_admin()
 returns table(
   id uuid,
+  slug text,
   title text,
   description text,
   link text,
@@ -648,6 +649,7 @@ begin
   return query
   select 
     r.id,
+    r.slug,
     r.title,
     r.description,
     r.link,
@@ -671,10 +673,11 @@ begin
 end;
 $$ language plpgsql security definer stable;
 
--- Function to get single resource with full details
-create or replace function public.get_resource_details(p_resource_id uuid)
+-- Function to get single resource with full details by slug or id
+create or replace function public.get_resource_details(p_resource_identifier text)
 returns table(
   id uuid,
+  slug text,
   title text,
   description text,
   link text,
@@ -698,6 +701,7 @@ begin
   return query
   select 
     r.id,
+    r.slug,
     r.title,
     r.description,
     r.link,
@@ -719,7 +723,7 @@ begin
   from public.resources r
   left join public.admins a on r.created_by = a.id
   left join public.members m on a.email = m.email
-  where r.id = p_resource_id;
+  where r.slug = p_resource_identifier or r.id::text = p_resource_identifier;
 end;
 $$ language plpgsql security definer stable;
 
