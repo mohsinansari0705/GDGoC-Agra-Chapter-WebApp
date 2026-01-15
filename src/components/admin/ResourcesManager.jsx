@@ -25,6 +25,7 @@ export default function ResourcesManager() {
 
   const [formData, setFormData] = useState({
     title: '',
+    slug: '',
     description: '',
     link: '',
     category: 'Tutorial',
@@ -51,6 +52,25 @@ export default function ResourcesManager() {
     console.log('Admin state in ResourcesManager:', admin);
     console.log('Admin ID:', admin?.admin_id);
   }, [admin]);
+
+  // Generate slug from title
+  const generateSlug = (title) => {
+    return title
+      .toLowerCase()
+      .trim()
+      .replace(/[^\w\s-]/g, '')
+      .replace(/[\s_-]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+  };
+
+  // Auto-generate slug when title changes
+  const handleTitleChange = (newTitle) => {
+    setFormData(prev => ({
+      ...prev,
+      title: newTitle,
+      slug: editingResource ? prev.slug : generateSlug(newTitle)
+    }));
+  };
 
   const fetchResources = async () => {
     try {
@@ -121,7 +141,7 @@ export default function ResourcesManager() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!formData.title || !formData.link) {
+    if (!formData.title || !formData.link || !formData.slug) {
       alert('Please fill in all required fields');
       return;
     }
@@ -148,6 +168,7 @@ export default function ResourcesManager() {
 
         const resourceData = {
           title: formData.title,
+          slug: formData.slug,
           description: formData.description,
           link: formData.link,
           category: formData.category,
@@ -169,6 +190,7 @@ export default function ResourcesManager() {
         // Create new resource first
         const resourceData = {
           title: formData.title,
+          slug: formData.slug,
           description: formData.description,
           link: formData.link,
           category: formData.category,
@@ -219,6 +241,7 @@ export default function ResourcesManager() {
     setEditingResource(resource);
     setFormData({
       title: resource.title,
+      slug: resource.slug,
       description: resource.description,
       link: resource.link,
       category: resource.category,
@@ -284,6 +307,7 @@ export default function ResourcesManager() {
   const resetForm = () => {
     setFormData({
       title: '',
+      slug: '',
       description: '',
       link: '',
       category: 'Tutorial',
@@ -496,10 +520,23 @@ export default function ResourcesManager() {
                 <input
                   type="text"
                   value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  onChange={(e) => handleTitleChange(e.target.value)}
                   className="w-full px-4 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
                 />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Slug *</label>
+                <input
+                  type="text"
+                  value={formData.slug}
+                  onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+                  className="w-full px-4 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="auto-generated-from-title"
+                  required
+                />
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">URL-friendly version of the title (auto-generated, but you can edit)</p>
               </div>
 
               <div>
