@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabaseClient';
 import {
-  Search, Filter, BookOpen, ExternalLink, Heart, Eye, Star, X, Calendar, Share2, Check
+  Search, Filter, BookOpen, ExternalLink, Heart, Eye, Star, X, Calendar, Share2, Check, ChevronDown
 } from 'lucide-react';
 import { fadeInUp, staggerContainer, pageTransition } from '../utils/animations';
 
@@ -23,7 +23,9 @@ export default function Resources() {
   const [resources, setResources] = useState([]);
   const [filteredResources, setFilteredResources] = useState([]);
   const [selectedResource, setSelectedResource] = useState(null);
+
   const [likedResources, setLikedResources] = useState(new Set());
+  const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
   const [toast, setToast] = useState({ show: false, message: '' });
 
   const showToast = (message) => {
@@ -243,40 +245,60 @@ export default function Resources() {
           transition={{ duration: 0.5 }}
           className="mb-12 space-y-6"
         >
-          {/* Search */}
-          <div className="relative max-w-2xl mx-auto">
-            <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 group-focus-within:text-google-blue transition-colors" />
-            <input
-              type="text"
-              placeholder="Search resources..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-14 pr-6 py-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-google-blue/50 text-gray-900 dark:text-white placeholder-gray-400 transition-all shadow-sm hover:shadow-md"
-            />
-          </div>
+          {/* Search & Filter Container */}
+          <div className="flex flex-col md:flex-row gap-4 max-w-4xl mx-auto relative z-20">
+            {/* Search */}
+            <div className="relative flex-1">
+              <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 group-focus-within:text-google-blue transition-colors" />
+              <input
+                type="text"
+                placeholder="Search resources..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-14 pr-6 py-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-google-blue/50 text-gray-900 dark:text-white placeholder-gray-400 transition-all shadow-sm hover:shadow-md"
+              />
+            </div>
 
-          {/* Category Filter */}
-          <div className="flex items-center justify-center">
-            <div className="p-1.5 bg-white dark:bg-gray-800 rounded-full shadow-sm border border-gray-200 dark:border-gray-700 inline-flex flex-wrap gap-1 justify-center max-w-full">
-              {categories.map(category => (
-                <button
-                  key={category}
-                  onClick={() => setSelectedCategory(category)}
-                  className={`relative px-6 py-2.5 rounded-full font-medium text-sm transition-all duration-300 z-10 flex-shrink-0 ${selectedCategory === category
-                    ? 'text-white'
-                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
-                    }`}
-                >
-                  {selectedCategory === category && (
-                    <motion.span
-                      layoutId="categoryBubble"
-                      className="absolute inset-0 bg-gray-900 dark:bg-google-blue rounded-full -z-10 shadow-lg"
-                      transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                    />
-                  )}
-                  {category}
-                </button>
-              ))}
+            {/* Category Filter Dropdown */}
+            <div className="relative w-full md:w-64">
+              <button
+                onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
+                className="w-full flex items-center justify-between px-6 py-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl text-gray-700 dark:text-gray-200 hover:border-google-blue/50 dark:hover:border-google-blue/50 transition-colors shadow-sm"
+              >
+                <span className="font-medium">{selectedCategory === 'All' ? 'All Categories' : selectedCategory}</span>
+                <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform duration-300 ${showCategoryDropdown ? 'rotate-180' : ''}`} />
+              </button>
+
+              <AnimatePresence>
+                {showCategoryDropdown && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                    transition={{ duration: 0.2 }}
+                    className="absolute top-full right-0 mt-2 w-full bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700 overflow-hidden max-h-80 overflow-y-auto z-50 p-2"
+                  >
+                    {categories.map((category) => (
+                      <button
+                        key={category}
+                        onClick={() => {
+                          setSelectedCategory(category);
+                          setShowCategoryDropdown(false);
+                        }}
+                        className={`w-full text-left px-4 py-3 rounded-xl transition-colors flex items-center justify-between group ${selectedCategory === category
+                          ? 'bg-google-blue/10 text-google-blue dark:bg-google-blue/20 dark:text-blue-400'
+                          : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50'
+                          }`}
+                      >
+                        <span className="font-medium">{category}</span>
+                        {selectedCategory === category && (
+                          <Check className="w-4 h-4 text-google-blue" />
+                        )}
+                      </button>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </div>
         </motion.div>
