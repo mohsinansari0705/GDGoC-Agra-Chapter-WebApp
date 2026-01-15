@@ -1,566 +1,595 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { motion } from "framer-motion";
-import { BookOpen, Video, Code, FileText, ExternalLink } from "lucide-react";
-import { isSupabaseConfigured, supabase } from "../lib/supabaseClient";
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { supabase } from '../lib/supabaseClient';
+import {
+  Search, Filter, BookOpen, ExternalLink, Heart, Eye, Star, X, Calendar, Share2, Check
+} from 'lucide-react';
+import { fadeInUp, staggerContainer, pageTransition } from '../utils/animations';
 
-const Resources = () => {
-  const resources = [
-    {
-      category: "Web Development",
-      color: "bg-blue-500",
-      icon: <Code className="w-8 h-8" />,
-      items: [
-        {
-          title: "React.js Official Documentation",
-          link: "https://react.dev",
-          type: "Documentation",
-        },
-        {
-          title: "MDN Web Docs",
-          link: "https://developer.mozilla.org",
-          type: "Documentation",
-        },
-        {
-          title: "Next.js Tutorial",
-          link: "https://nextjs.org/learn",
-          type: "Tutorial",
-        },
-        {
-          title: "Tailwind CSS Guide",
-          link: "https://tailwindcss.com/docs",
-          type: "Documentation",
-        },
-      ],
-    },
-    {
-      category: "AI/ML",
-      color: "bg-red-500",
-      icon: <BookOpen className="w-8 h-8" />,
-      items: [
-        {
-          title: "Google AI Learning",
-          link: "https://ai.google/education/",
-          type: "Course",
-        },
-        {
-          title: "TensorFlow Tutorials",
-          link: "https://www.tensorflow.org/tutorials",
-          type: "Tutorial",
-        },
-        {
-          title: "Machine Learning Crash Course",
-          link: "https://developers.google.com/machine-learning/crash-course",
-          type: "Course",
-        },
-        {
-          title: "Kaggle Learn",
-          link: "https://www.kaggle.com/learn",
-          type: "Platform",
-        },
-      ],
-    },
-    {
-      category: "Cloud Computing",
-      color: "bg-yellow-500",
-      icon: <Video className="w-8 h-8" />,
-      items: [
-        {
-          title: "Google Cloud Training",
-          link: "https://cloud.google.com/training",
-          type: "Course",
-        },
-        {
-          title: "Google Cloud Skills Boost",
-          link: "https://www.cloudskillsboost.google/",
-          type: "Platform",
-        },
-        {
-          title: "Firebase Documentation",
-          link: "https://firebase.google.com/docs",
-          type: "Documentation",
-        },
-        {
-          title: "Cloud Architecture Center",
-          link: "https://cloud.google.com/architecture",
-          type: "Guide",
-        },
-      ],
-    },
-    {
-      category: "Android Development",
-      color: "bg-green-500",
-      icon: <Code className="w-8 h-8" />,
-      items: [
-        {
-          title: "Android Developer Guide",
-          link: "https://developer.android.com/guide",
-          type: "Documentation",
-        },
-        {
-          title: "Flutter Documentation",
-          link: "https://flutter.dev/docs",
-          type: "Documentation",
-        },
-        {
-          title: "Kotlin for Android",
-          link: "https://kotlinlang.org/docs/android-overview.html",
-          type: "Documentation",
-        },
-        {
-          title: "Jetpack Compose",
-          link: "https://developer.android.com/jetpack/compose",
-          type: "Framework",
-        },
-      ],
-    },
-    {
-      category: "Design & UI/UX",
-      color: "bg-purple-500",
-      icon: <FileText className="w-8 h-8" />,
-      items: [
-        {
-          title: "Material Design",
-          link: "https://material.io/design",
-          type: "Guide",
-        },
-        {
-          title: "Google Design Resources",
-          link: "https://design.google/",
-          type: "Resources",
-        },
-        {
-          title: "Figma Community",
-          link: "https://www.figma.com/community",
-          type: "Platform",
-        },
-        {
-          title: "Design Principles",
-          link: "https://principles.design/",
-          type: "Guide",
-        },
-      ],
-    },
-    {
-      category: "Developer Tools",
-      color: "bg-indigo-500",
-      icon: <Code className="w-8 h-8" />,
-      items: [
-        {
-          title: "VS Code Tips",
-          link: "https://code.visualstudio.com/docs",
-          type: "Documentation",
-        },
-        {
-          title: "Git Documentation",
-          link: "https://git-scm.com/doc",
-          type: "Documentation",
-        },
-        {
-          title: "Chrome DevTools",
-          link: "https://developer.chrome.com/docs/devtools/",
-          type: "Tool",
-        },
-        {
-          title: "GitHub Learning Lab",
-          link: "https://lab.github.com/",
-          type: "Course",
-        },
-      ],
-    },
-  ];
+const categories = [
+  'All',
+  'Tutorial',
+  'Documentation',
+  'Tool',
+  'Article',
+  'Video',
+  'Course',
+  'Book',
+  'Template',
+  'Other'
+];
 
-  const categoryOptions = useMemo(
-    () => resources.map((r) => r.category),
-    [resources]
-  );
+export default function Resources() {
+  const [resources, setResources] = useState([]);
+  const [filteredResources, setFilteredResources] = useState([]);
+  const [selectedResource, setSelectedResource] = useState(null);
+  const [likedResources, setLikedResources] = useState(new Set());
+  const [toast, setToast] = useState({ show: false, message: '' });
 
-  const [communityResources, setCommunityResources] = useState([]);
-  const [isLoadingCommunity, setIsLoadingCommunity] = useState(false);
-  const [communityError, setCommunityError] = useState("");
-
-  const [submitState, setSubmitState] = useState({
-    title: "",
-    link: "",
-    category: categoryOptions[0] || "General",
-    type: "Resource",
-    description: "",
-  });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitMessage, setSubmitMessage] = useState("");
+  const showToast = (message) => {
+    setToast({ show: true, message });
+    setTimeout(() => setToast({ show: false, message: '' }), 3000);
+  };
+  const [loading, setLoading] = useState(true);
+  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
-    let cancelled = false;
-
-    const loadCommunity = async () => {
-      if (!supabase || !isSupabaseConfigured) return;
-
-      setIsLoadingCommunity(true);
-      setCommunityError("");
-      try {
-        const { data, error } = await supabase
-          .from("resources")
-          .select("id,title,link,category,type,description,created_at")
-          .order("created_at", { ascending: false })
-          .limit(100);
-
-        if (error) throw error;
-        if (cancelled) return;
-        setCommunityResources(data || []);
-      } catch (err) {
-        if (cancelled) return;
-        setCommunityError(err?.message || "Failed to load community resources");
-      } finally {
-        if (!cancelled) setIsLoadingCommunity(false);
+    fetchResources();
+    // Load liked resources from local storage
+    const loadedLikes = new Set();
+    Object.keys(localStorage).forEach(key => {
+      if (key.startsWith('liked_resource_')) {
+        loadedLikes.add(key.replace('liked_resource_', ''));
       }
-    };
+    });
+    setLikedResources(loadedLikes);
+  }, []);
 
-    loadCommunity();
+  useEffect(() => {
+    filterResources();
+  }, [resources, selectedCategory, searchQuery]);
 
-    return () => {
-      cancelled = true;
-    };
-  }, [categoryOptions]);
+  useEffect(() => {
+    console.log('Filtered resources:', filteredResources);
+  }, [filteredResources]);
 
-  const normalizeUrl = (value) => {
-    const trimmed = (value || "").trim();
-    if (!trimmed) return "";
-    if (/^https?:\/\//i.test(trimmed)) return trimmed;
-    return `https://${trimmed}`;
+  const fetchResources = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase.rpc('get_resources_with_admin');
+
+      if (error) throw error;
+      console.log('Fetched resources:', data);
+      setResources(data || []);
+    } catch (error) {
+      console.error('Error fetching resources:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleSubmitCommunity = async (e) => {
-    e.preventDefault();
-    if (!supabase || !isSupabaseConfigured) return;
+  const filterResources = () => {
+    let filtered = [...resources];
 
-    setSubmitMessage("");
-
-    const title = (submitState.title || "").trim();
-    const link = normalizeUrl(submitState.link);
-
-    if (!title) {
-      setSubmitMessage("Title is required.");
-      return;
+    if (selectedCategory !== 'All') {
+      filtered = filtered.filter(r => r.category === selectedCategory);
     }
 
-    if (!link || !/^https?:\/\//i.test(link)) {
-      setSubmitMessage("Please enter a valid link (http/https).");
-      return;
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(r =>
+        r.title.toLowerCase().includes(query) ||
+        r.description.toLowerCase().includes(query) ||
+        r.tags?.some(tag => tag.toLowerCase().includes(query))
+      );
     }
 
-    setIsSubmitting(true);
+    setFilteredResources(filtered);
+  };
+
+  const handleResourceClick = async (resource) => {
+    setSelectedResource(resource);
+
+    // Increment view count
     try {
-      const payload = {
-        title,
-        link,
-        category: (submitState.category || "").trim(),
-        type: (submitState.type || "").trim(),
-        description: (submitState.description || "").trim(),
-      };
+      await supabase.rpc('increment_resource_views', {
+        p_resource_id: resource.id
+      });
 
-      const { error } = await supabase.from("resources").insert(payload);
+      // Update local state
+      setResources(prev => prev.map(r =>
+        r.id === resource.id ? { ...r, views_count: r.views_count + 1 } : r
+      ));
+    } catch (error) {
+      console.error('Error incrementing views:', error);
+    }
+  };
+
+  const handleLike = async (e, resourceId) => {
+    e.stopPropagation();
+
+    // Visual update: "Pink Icon" logic
+    if (!likedResources.has(resourceId)) {
+      setLikedResources(prev => new Set([...prev, resourceId]));
+      localStorage.setItem(`liked_resource_${resourceId}`, 'true');
+    }
+
+    try {
+      // Use the function that definitely exists in DB (plural)
+      const { data, error } = await supabase.rpc('increment_resource_likes', {
+        row_id: resourceId
+      });
+
       if (error) throw error;
 
-      setSubmitState((prev) => ({
-        ...prev,
-        title: "",
-        link: "",
-        description: "",
-      }));
-      setSubmitMessage("Thanks! Your resource was added.");
+      // Simple state update: just increment counts
+      setResources(prev => prev.map(r =>
+        r.id === resourceId ? { ...r, likes_count: (r.likes_count || 0) + 1 } : r
+      ));
 
-      const { data, error: reloadErr } = await supabase
-        .from("resources")
-        .select("id,title,link,category,type,description,created_at")
-        .order("created_at", { ascending: false })
-        .limit(100);
-      if (!reloadErr) setCommunityResources(data || []);
-    } catch (err) {
-      setSubmitMessage(err?.message || "Failed to submit resource");
-    } finally {
-      setIsSubmitting(false);
+    } catch (error) {
+      console.error('Error liking resource:', error);
     }
+  };
+
+
+  const handleShare = (e, resource) => {
+    e.stopPropagation();
+    const slug = resource.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+    const url = `${window.location.origin}/resources/${slug}`;
+
+    navigator.clipboard.writeText(url).then(() => {
+      showToast('Link copied to clipboard!');
+    }).catch(() => {
+      showToast('Failed to copy link');
+    });
+  };
+
+  const getCategoryColor = (category) => {
+    const colors = {
+      Tutorial: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300',
+      Documentation: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300',
+      Tool: 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300',
+      Article: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300',
+      Video: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300',
+      Course: 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300',
+      Book: 'bg-pink-100 dark:bg-pink-900/30 text-pink-700 dark:text-pink-300',
+      Template: 'bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300',
+      Other: 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+    };
+    return colors[category] || colors.Other;
+  };
+
+  const getTypeColor = (type) => {
+    const colors = {
+      Free: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300',
+      Paid: 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300',
+      Freemium: 'bg-cyan-100 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-300'
+    };
+    return colors[type] || colors.Free;
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900 transition-colors duration-300">
+    <motion.div
+      initial="initial"
+      animate="animate"
+      exit="exit"
+      variants={pageTransition}
+      className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300 relative"
+    >
+      {/* Background Pattern */}
+      <div className="fixed inset-0 pointer-events-none opacity-30 dark:opacity-20 z-0">
+        <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] dark:bg-[radial-gradient(#374151_1px,transparent_1px)] [background-size:20px_20px]"></div>
+      </div>
+
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-purple-50 via-blue-50 to-cyan-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 py-20 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto text-center">
+      <section className="relative overflow-hidden min-h-[50vh] flex items-center bg-gradient-to-br from-blue-50/50 via-white to-green-50/50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-950 pt-32 pb-20 px-4 sm:px-6 lg:px-8 border-b border-gray-100 dark:border-gray-800 z-10">
+        <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+          <motion.div
+            animate={{
+              scale: [1, 1.2, 1],
+              rotate: [0, 90, 0],
+            }}
+            transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+            className="absolute top-0 right-0 w-[600px] h-[600px] bg-gradient-to-br from-google-blue/10 to-transparent rounded-full blur-3xl opacity-40 dark:opacity-10"
+          />
+          <motion.div
+            animate={{
+              scale: [1, 1.3, 1],
+              rotate: [0, -60, 0],
+            }}
+            transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
+            className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-gradient-to-tr from-google-green/10 to-transparent rounded-full blur-3xl opacity-40 dark:opacity-10"
+          />
+        </div>
+
+        <div className="max-w-7xl mx-auto text-center relative z-10">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5 }}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border border-gray-100 dark:border-gray-700 shadow-sm mb-8"
+          >
+            <BookOpen className="w-4 h-4 text-google-blue" />
+            <span className="text-sm font-semibold text-gray-800 dark:text-gray-200">Learning Resources</span>
+          </motion.div>
+
           <motion.h1
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="text-5xl md:text-6xl font-bold text-gray-900 dark:text-white mb-6"
+            className="text-5xl md:text-6xl font-bold text-gray-900 dark:text-white mb-6 tracking-tight"
           >
-            Resources
+            Resources & <span className="text-transparent bg-clip-text bg-gradient-to-r from-google-blue via-google-green to-google-yellow">Learning</span>
           </motion.h1>
+
           <motion.p
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-xl text-gray-600 dark:text-gray-300"
+            className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto font-light leading-relaxed"
           >
-            Curated learning materials and resources for our community members
+            Curated collection of tutorials, tools, and resources to help you learn and grow as a developer.
           </motion.p>
-
-          {isSupabaseConfigured ? (
-            <motion.a
-              href="#add-resource"
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.3 }}
-              className="inline-flex mt-8 bg-google-blue text-white px-8 py-3 rounded-lg font-bold hover:bg-blue-600 transition-colors"
-            >
-              Add your resource
-            </motion.a>
-          ) : null}
         </div>
       </section>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="space-y-12">
-          {resources.map((category, categoryIndex) => (
-            <motion.section
-              key={categoryIndex}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: categoryIndex * 0.1 }}
-            >
-              <div className="flex items-center mb-6">
-                <div
-                  className={`${category.color} p-3 rounded-lg text-white mr-4`}
-                >
-                  {category.icon}
-                </div>
-                <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
-                  {category.category}
-                </h2>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {category.items.map((item, itemIndex) => (
-                  <motion.a
-                    key={itemIndex}
-                    href={item.link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    whileHover={{ scale: 1.02, y: -5 }}
-                    className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 border-l-4 border-google-blue group"
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2 group-hover:text-google-blue transition-colors">
-                          {item.title}
-                        </h3>
-                        <span className="inline-block bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-3 py-1 rounded-full text-sm">
-                          {item.type}
-                        </span>
-                      </div>
-                      <ExternalLink className="w-5 h-5 text-gray-400 group-hover:text-google-blue transition-colors" />
-                    </div>
-                  </motion.a>
-                ))}
-              </div>
-            </motion.section>
-          ))}
-        </div>
-
-        {/* Community Resources */}
-        <motion.section
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="mt-16"
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative z-10">
+        {/* Filters */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="mb-12 space-y-6"
         >
-          <div className="flex items-center mb-6">
-            <div className="bg-google-blue p-3 rounded-lg text-white mr-4">
-              <BookOpen className="w-8 h-8" />
-            </div>
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
-              Community Resources
-            </h2>
+          {/* Search */}
+          <div className="relative max-w-2xl mx-auto">
+            <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 group-focus-within:text-google-blue transition-colors" />
+            <input
+              type="text"
+              placeholder="Search resources..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-14 pr-6 py-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-google-blue/50 text-gray-900 dark:text-white placeholder-gray-400 transition-all shadow-sm hover:shadow-md"
+            />
           </div>
 
-          {!isSupabaseConfigured ? (
-            <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700">
-              <p className="text-gray-600 dark:text-gray-300">
-                Supabase is not configured, so community resources are disabled.
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Add your resource */}
-              <div
-                id="add-resource"
-                className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700"
-              >
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-                  Add your resource
-                </h3>
-                <p className="text-gray-600 dark:text-gray-400 mb-4">
-                  Share a helpful link with the community.
-                </p>
-
-                <form onSubmit={handleSubmitCommunity} className="space-y-3">
-                  <input
-                    value={submitState.title}
-                    onChange={(e) =>
-                      setSubmitState((prev) => ({
-                        ...prev,
-                        title: e.target.value,
-                      }))
-                    }
-                    placeholder="Title (e.g., React Roadmap)"
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 outline-none"
-                    required
-                  />
-                  <input
-                    value={submitState.link}
-                    onChange={(e) =>
-                      setSubmitState((prev) => ({
-                        ...prev,
-                        link: e.target.value,
-                      }))
-                    }
-                    placeholder="Link (e.g., https://example.com)"
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 outline-none"
-                    required
-                  />
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <select
-                      value={submitState.category}
-                      onChange={(e) =>
-                        setSubmitState((prev) => ({
-                          ...prev,
-                          category: e.target.value,
-                        }))
-                      }
-                      className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 outline-none"
-                    >
-                      {categoryOptions.map((c) => (
-                        <option key={c} value={c}>
-                          {c}
-                        </option>
-                      ))}
-                      {!categoryOptions.includes("General") && (
-                        <option value="General">General</option>
-                      )}
-                    </select>
-
-                    <input
-                      value={submitState.type}
-                      onChange={(e) =>
-                        setSubmitState((prev) => ({
-                          ...prev,
-                          type: e.target.value,
-                        }))
-                      }
-                      placeholder="Type (e.g., Course)"
-                      className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 outline-none"
+          {/* Category Filter */}
+          <div className="flex items-center justify-center">
+            <div className="p-1.5 bg-white dark:bg-gray-800 rounded-full shadow-sm border border-gray-200 dark:border-gray-700 inline-flex flex-wrap gap-1 justify-center max-w-full">
+              {categories.map(category => (
+                <button
+                  key={category}
+                  onClick={() => setSelectedCategory(category)}
+                  className={`relative px-6 py-2.5 rounded-full font-medium text-sm transition-all duration-300 z-10 flex-shrink-0 ${selectedCategory === category
+                    ? 'text-white'
+                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
+                    }`}
+                >
+                  {selectedCategory === category && (
+                    <motion.span
+                      layoutId="categoryBubble"
+                      className="absolute inset-0 bg-gray-900 dark:bg-google-blue rounded-full -z-10 shadow-lg"
+                      transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                     />
-                  </div>
-
-                  <textarea
-                    value={submitState.description}
-                    onChange={(e) =>
-                      setSubmitState((prev) => ({
-                        ...prev,
-                        description: e.target.value,
-                      }))
-                    }
-                    placeholder="Description (optional)"
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 outline-none min-h-[90px]"
-                  />
-
-                  {submitMessage ? (
-                    <p className="text-sm text-gray-600 dark:text-gray-300">
-                      {submitMessage}
-                    </p>
-                  ) : null}
-
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="w-full bg-google-blue text-white px-6 py-3 rounded-lg font-bold hover:bg-blue-600 disabled:opacity-50 transition-colors"
-                  >
-                    {isSubmitting ? "Submitting..." : "Submit Resource"}
-                  </button>
-                </form>
-              </div>
-
-              {/* List */}
-              <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700">
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-                  Latest submissions
-                </h3>
-
-                {isLoadingCommunity ? (
-                  <p className="text-gray-600 dark:text-gray-300">Loading...</p>
-                ) : communityError ? (
-                  <p className="text-red-600 dark:text-red-400">
-                    {communityError}
-                  </p>
-                ) : communityResources.length === 0 ? (
-                  <p className="text-gray-600 dark:text-gray-300">
-                    No community resources yet.
-                  </p>
-                ) : (
-                  <div className="space-y-3">
-                    {communityResources.slice(0, 10).map((item) => (
-                      <a
-                        key={item.id}
-                        href={item.link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="block p-4 rounded-xl bg-gray-50 dark:bg-gray-700/30 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                      >
-                        <div className="flex items-start justify-between gap-3">
-                          <div>
-                            <p className="font-bold text-gray-900 dark:text-white">
-                              {item.title}
-                            </p>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">
-                              {item.category || "General"}
-                              {item.type ? ` • ${item.type}` : ""}
-                            </p>
-                            {item.description ? (
-                              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                                {item.description}
-                              </p>
-                            ) : null}
-                          </div>
-                          <ExternalLink className="w-5 h-5 text-gray-400" />
-                        </div>
-                      </a>
-                    ))}
-                  </div>
-                )}
-              </div>
+                  )}
+                  {category}
+                </button>
+              ))}
             </div>
+          </div>
+        </motion.div>
+
+        {/* Resources Grid */}
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="bg-white dark:bg-gray-800 rounded-3xl overflow-hidden shadow-sm border border-gray-100 dark:border-gray-700 animate-pulse">
+                <div className="h-56 bg-gray-200 dark:bg-gray-700"></div>
+                <div className="p-6">
+                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-4"></div>
+                  <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-full mb-2"></div>
+                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-5/6 mb-6"></div>
+                  <div className="flex items-center gap-4">
+                    <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-16"></div>
+                    <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-16"></div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : filteredResources.length === 0 ? (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center py-20"
+          >
+            <div className="w-24 h-24 mx-auto mb-6 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center">
+              <BookOpen className="w-12 h-12 text-gray-400" />
+            </div>
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">No resources found</h3>
+            <p className="text-gray-500 dark:text-gray-400">Try adjusting your filters or search query</p>
+          </motion.div>
+        ) : (
+          <div
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 relative z-10"
+          >
+            {filteredResources.map((resource, index) => (
+              <motion.div
+                key={resource.id}
+                initial={{ opacity: 1, y: 0 }}
+                whileHover={{ y: -10 }}
+                onClick={() => handleResourceClick(resource)}
+                className="bg-white dark:bg-gray-800 rounded-3xl overflow-hidden shadow-sm hover:shadow-2xl border border-gray-100 dark:border-gray-700 group cursor-pointer transition-all duration-300 flex flex-col h-full"
+              >
+                {/* Thumbnail */}
+                <div className="relative h-56 bg-gray-100 dark:bg-gray-900 overflow-hidden">
+                  {resource.thumbnail_url ? (
+                    <img
+                      src={resource.thumbnail_url}
+                      alt={resource.title}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                    />
+                  ) : (
+                    <div className="flex flex-col items-center justify-center h-full text-gray-300 dark:text-gray-600 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900">
+                      <BookOpen className="w-12 h-12 mb-2 opacity-50" />
+                      <span className="text-4xl font-bold opacity-30">{resource.title.charAt(0)}</span>
+                    </div>
+                  )}
+
+                  {/* Overlay Gradient */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60"></div>
+
+                  {resource.is_featured && (
+                    <div className="absolute top-4 right-4 bg-yellow-400/90 backdrop-blur-sm text-yellow-950 px-3 py-1.5 rounded-full flex items-center gap-1.5 text-xs font-bold shadow-lg z-10">
+                      <Star className="w-3.5 h-3.5 fill-current" />
+                      Featured
+                    </div>
+                  )}
+
+                  {/* Category Badge */}
+                  <div className="absolute bottom-4 left-4 z-10">
+                    <span className={`text-xs px-3 py-1.5 rounded-lg font-bold backdrop-blur-md shadow-sm border border-white/20 text-white ${resource.category === 'Video' ? 'bg-red-500/80' :
+                      resource.category === 'Course' ? 'bg-blue-500/80' :
+                        'bg-gray-900/60'
+                      }`}>
+                      {resource.category}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Content */}
+                <div className="p-6 flex-grow flex flex-col">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border ${resource.type === 'Free' ? 'border-green-200 text-green-600 dark:border-green-900/30 dark:text-green-400' :
+                      'border-orange-200 text-orange-600 dark:border-orange-900/30 dark:text-orange-400'
+                      }`}>
+                      {resource.type}
+                    </span>
+                  </div>
+
+                  <h3 className="text-xl font-bold mb-3 line-clamp-2 text-gray-900 dark:text-white group-hover:text-google-blue transition-colors">
+                    {resource.title}
+                  </h3>
+
+                  <p className="text-gray-600 dark:text-gray-400 text-sm mb-6 line-clamp-2 flex-grow">
+                    {resource.description}
+                  </p>
+
+                  {/* Stats & Metadata */}
+                  <div className="flex items-center justify-between text-sm pt-4 border-t border-gray-100 dark:border-gray-700 mt-auto">
+                    <div className="flex items-center gap-4">
+                      {/* Like Button */}
+                      <button
+                        onClick={(e) => handleLike(e, resource.id)}
+                        className={`flex items-center gap-1.5 transition-colors group/btn ${likedResources.has(resource.id)
+                          ? 'text-red-500 dark:text-red-400'
+                          : 'text-gray-500 dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400'
+                          }`}
+                      >
+                        <Heart className={`w-4 h-4 transition-all duration-300 ${likedResources.has(resource.id) ? 'fill-current scale-110' : 'group-hover/btn:fill-current'
+                          }`} />
+                        <span className="font-medium">{resource.likes_count || 0}</span>
+                      </button>
+
+                      <div className="flex items-center gap-1.5 text-gray-500 dark:text-gray-400">
+                        <Eye className="w-4 h-4" />
+                        <span className="font-medium">{resource.views_count || 0}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={(e) => handleShare(e, resource)}
+                        className="text-gray-400 hover:text-google-blue transition-colors p-1"
+                        title="Share"
+                      >
+                        <Share2 className="w-4 h-4" />
+                      </button>
+                      <span className="text-xs font-semibold text-google-blue flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+                        View Details <ExternalLink className="w-3 h-3" />
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Bottom Gradient Accent */}
+                <div className="h-1.5 w-full bg-gradient-to-r from-google-blue to-google-green transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left"></div>
+              </motion.div>
+            ))}
+          </div>
+        )}
+
+        {/* Resource Detail Modal */}
+        <AnimatePresence>
+          {selectedResource && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setSelectedResource(null)}
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto"
+            >
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                onClick={(e) => e.stopPropagation()}
+                className="bg-white dark:bg-gray-800 rounded-3xl max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-gray-200 dark:border-gray-700"
+              >
+                {/* Header with Thumbnail */}
+                <div className="relative h-72 bg-gradient-to-br from-blue-400 via-purple-500 to-pink-500">
+                  {selectedResource.thumbnail_url ? (
+                    <img
+                      src={selectedResource.thumbnail_url}
+                      alt={selectedResource.title}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex items-center justify-center h-full text-white text-9xl font-bold">
+                      {selectedResource.title.charAt(0)}
+                    </div>
+                  )}
+                  <button
+                    onClick={() => setSelectedResource(null)}
+                    className="absolute top-4 right-4 bg-white/90 dark:bg-gray-800/90 hover:bg-white dark:hover:bg-gray-800 p-2.5 rounded-full transition-all shadow-lg"
+                  >
+                    <X className="w-6 h-6 text-gray-700 dark:text-gray-300" />
+                  </button>
+                  {selectedResource.is_featured && (
+                    <div className="absolute top-4 left-4 bg-yellow-400 text-yellow-900 px-4 py-2 rounded-full flex items-center gap-2 font-bold shadow-lg">
+                      <Star className="w-5 h-5 fill-current" />
+                      Featured Resource
+                    </div>
+                  )}
+                </div>
+
+                {/* Content */}
+                <div className="p-8">
+                  {/* Title and Tags */}
+                  <div className="flex items-start gap-3 mb-4 flex-wrap">
+                    <span className={`text-sm px-3 py-1.5 rounded-full font-medium ${getCategoryColor(selectedResource.category)}`}>
+                      {selectedResource.category}
+                    </span>
+                    <span className={`text-sm px-3 py-1.5 rounded-full font-medium ${getTypeColor(selectedResource.type)}`}>
+                      {selectedResource.type}
+                    </span>
+                  </div>
+
+                  <h2 className="text-3xl font-bold mb-4 text-gray-900 dark:text-white">{selectedResource.title}</h2>
+
+                  <p className="text-gray-700 dark:text-gray-300 mb-6 text-lg leading-relaxed">
+                    {selectedResource.description}
+                  </p>
+
+                  {/* Tags */}
+                  {selectedResource.tags && selectedResource.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mb-6">
+                      {selectedResource.tags.map((tag, index) => (
+                        <span
+                          key={index}
+                          className="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-3 py-1.5 rounded-full text-sm font-medium"
+                        >
+                          #{tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Stats */}
+                  <div className="flex items-center gap-6 mb-6">
+                    <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+                      <Eye className="w-5 h-5" />
+                      <span className="font-semibold">{selectedResource.views_count} Views</span>
+                    </div>
+                  </div>
+
+                  {/* Creator Info */}
+                  <div className="bg-gray-50 dark:bg-gray-700/50 rounded-2xl p-6 mb-6 border border-gray-100 dark:border-gray-600">
+                    <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Added By</h3>
+                    <div className="flex items-center gap-4">
+                      <div className="w-16 h-16 rounded-full bg-gradient-to-br from-google-blue to-google-green flex items-center justify-center text-white text-2xl font-bold overflow-hidden flex-shrink-0">
+                        {selectedResource.admin_profile_image ? (
+                          <img
+                            src={selectedResource.admin_profile_image}
+                            alt={selectedResource.admin_name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          selectedResource.admin_name?.charAt(0) || 'A'
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-lg text-gray-900 dark:text-white truncate">{selectedResource.admin_name || 'Admin'}</p>
+                        <p className="text-gray-600 dark:text-gray-400 text-sm truncate">{selectedResource.admin_email}</p>
+                        <p className="text-gray-500 dark:text-gray-500 text-sm flex items-center gap-1">
+                          <Calendar className="w-4 h-4" /> Added on {new Date(selectedResource.created_at).toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                          })}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Action Bar */}
+                  <div className="flex items-center justify-between pt-6 border-t border-gray-100 dark:border-gray-700 mt-8">
+                    <div className="flex items-center gap-4">
+                      <button
+                        onClick={(e) => handleLike(e, selectedResource.id)}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-full font-semibold transition-all duration-300 transform active:scale-95 ${likedResources.has(selectedResource.id)
+                          ? 'bg-red-50 text-red-500 dark:bg-red-900/20 dark:text-red-400 ring-2 ring-red-500/20'
+                          : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/10 dark:hover:text-red-400'
+                          }`}
+                      >
+                        <Heart className={`w-5 h-5 ${likedResources.has(selectedResource.id) ? 'fill-current' : ''}`} />
+                        <span>{selectedResource.likes_count || 0} Likes</span>
+                      </button>
+
+                      <button
+                        onClick={(e) => handleShare(e, selectedResource)}
+                        className="flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50 text-google-blue dark:bg-blue-900/20 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors font-semibold"
+                      >
+                        <Share2 className="w-5 h-5" />
+                        <span>Share</span>
+                      </button>
+                    </div>
+
+                    <a
+                      href={selectedResource.link || "#"}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-google-blue to-blue-600 hover:from-blue-600 hover:to-google-blue text-white rounded-xl font-bold shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300"
+                    >
+                      <span>Open Resource</span>
+                      <ExternalLink className="ml-2 w-5 h-5" />
+                    </a>
+                  </div>
+                </div>
+              </motion.div>
+            </motion.div>
           )}
-        </motion.section>
+        </AnimatePresence>
 
-        {/* Additional Resources Section */}
-        <motion.section
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="mt-16 bg-gradient-to-r from-google-blue to-google-green p-8 rounded-2xl text-white"
-        >
-          <h2 className="text-3xl font-bold mb-4">Need More Resources?</h2>
-          <p className="text-lg mb-6">
-            Join our community on Discord and connect with fellow learners to
-            share resources and knowledge!
-          </p>
-          <button className="bg-white text-google-blue px-8 py-3 rounded-lg font-bold hover:bg-gray-100 transition-colors">
-            Join Community
-          </button>
-        </motion.section>
+        {/* Toast Notification */}
+        <AnimatePresence>
+          {toast.show && (
+            <motion.div
+              initial={{ opacity: 0, y: 50, x: '-50%' }}
+              animate={{ opacity: 1, y: 0, x: '-50%' }}
+              exit={{ opacity: 0, y: 50, x: '-50%' }}
+              className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50 bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 font-semibold"
+            >
+              <div className="bg-green-500 rounded-full p-1">
+                <Check className="w-3 h-3 text-white" />
+              </div>
+              {toast.message}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
-    </div>
+    </motion.div>
   );
-};
-
-export default Resources;
+}
