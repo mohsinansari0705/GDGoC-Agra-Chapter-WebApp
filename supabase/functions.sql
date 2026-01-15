@@ -334,6 +334,7 @@ $$ language plpgsql security definer;
 -- ============================================================================
 
 -- Function to get all members grouped and ordered by team hierarchy
+-- supports multiple executives per team
 create or replace function public.get_members_hierarchy()
 returns table(
   id uuid,
@@ -615,5 +616,134 @@ begin
     set display_order = p_new_orders[i], updated_at = now()
     where id = p_member_ids[i];
   end loop;
+end;
+$$ language plpgsql security definer;
+
+
+-- ============================================================================
+-- RESOURCES FUNCTIONS
+-- ============================================================================
+
+-- Function to get all resources with admin details
+create or replace function public.get_resources_with_admin()
+returns table(
+  id uuid,
+  title text,
+  description text,
+  link text,
+  category text,
+  type text,
+  tags text[],
+  thumbnail_url text,
+  likes_count int,
+  views_count int,
+  is_featured boolean,
+  is_active boolean,
+  created_at timestamptz,
+  admin_name text,
+  admin_email text,
+  admin_profile_image text
+) as $$
+begin
+  return query
+  select 
+    r.id,
+    r.title,
+    r.description,
+    r.link,
+    r.category,
+    r.type,
+    r.tags,
+    r.thumbnail_url,
+    r.likes_count,
+    r.views_count,
+    r.is_featured,
+    r.is_active,
+    r.created_at,
+    coalesce(a.admin_name, 'Unknown') as admin_name,
+    coalesce(a.email, '') as admin_email,
+    m.profile_image_url as admin_profile_image
+  from public.resources r
+  left join public.admins a on r.created_by = a.id
+  left join public.members m on a.email = m.email
+  where r.is_active = true
+  order by r.is_featured desc, r.created_at desc;
+end;
+$$ language plpgsql security definer stable;
+
+-- Function to get single resource with full details
+create or replace function public.get_resource_details(p_resource_id uuid)
+returns table(
+  id uuid,
+  title text,
+  description text,
+  link text,
+  category text,
+  type text,
+  tags text[],
+  thumbnail_url text,
+  likes_count int,
+  views_count int,
+  is_featured boolean,
+  is_active boolean,
+  created_at timestamptz,
+  admin_id uuid,
+  admin_name text,
+  admin_email text,
+  admin_profile_image text,
+  admin_team_name text,
+  admin_position text
+) as $$
+begin
+  return query
+  select 
+    r.id,
+    r.title,
+    r.description,
+    r.link,
+    r.category,
+    r.type,
+    r.tags,
+    r.thumbnail_url,
+    r.likes_count,
+    r.views_count,
+    r.is_featured,
+    r.is_active,
+    r.created_at,
+    a.id as admin_id,
+    a.admin_name,
+    a.email as admin_email,
+    m.profile_image_url as admin_profile_image,
+    m.team_name as admin_team_name,
+    m.position as admin_position
+  from public.resources r
+  left join public.admins a on r.created_by = a.id
+  left join public.members m on a.email = m.email
+  where r.id = p_resource_id;
+end;
+$$ language plpgsql security definer stable;
+
+-- Function to increment resource likes (public - no auth required)
+create or replace function public.increment_resource_like(p_resource_id uuid)
+returns jsonb as $$
+declare
+  new_count int;
+begin
+  update public.resources
+  set likes_count = likes_count + 1
+  where id = p_resource_id
+  returning likes_count into new_count;
+  
+  return jsonb_build_object('success', true, 'likes_count', new_count);
+end;
+$$ language plpgsql security definer;
+
+-- Function to increment resource views
+create or replace function public.increment_resource_views(p_resource_id uuid)
+returns void as $$
+begin
+  update public.resources
+  set views_count = views_count + 1
+  where id = p_resource_id;
 end;
 $$ language plpgsql security definer;

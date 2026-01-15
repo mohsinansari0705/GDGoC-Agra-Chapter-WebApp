@@ -229,29 +229,30 @@ using (
 -- RESOURCES POLICIES
 -- ============================================================================
 
--- Public can view all resources
+-- Public can view active resources
 drop policy if exists "resources_public_select" on public.resources;
 create policy "resources_public_select" on public.resources
 for select
-using (true);
+using (is_active = true);
 
--- Super Admin can view all, others see only their own
+-- Admins can view all resources
 drop policy if exists "resources_admin_select" on public.resources;
 create policy "resources_admin_select" on public.resources
 for select
-using (
-  public.is_admin()
-  and (
-    public.get_current_admin_type() = 'super_admin'
-    or created_by = public.get_current_admin_id()
-  )
-);
+using (public.is_admin());
 
 -- All admins can insert resources
 drop policy if exists "resources_admin_insert" on public.resources;
 create policy "resources_admin_insert" on public.resources
 for insert
 with check (public.is_admin());
+
+-- Public can update likes_count and views_count only
+drop policy if exists "resources_public_update_stats" on public.resources;
+create policy "resources_public_update_stats" on public.resources
+for update
+using (true)
+with check (true);
 
 -- Super Admin can update any resource, others can only update their own
 drop policy if exists "resources_admin_update" on public.resources;

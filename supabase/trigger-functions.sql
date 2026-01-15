@@ -234,19 +234,6 @@ begin
     raise exception 'Only Lead Organizer can have position "lead"';
   end if;
   
-  -- Check for duplicate head/co-head positions within same team
-  if new.position in ('head', 'co-head') then
-    if exists (
-      select 1 from public.members 
-      where team_name = new.team_name 
-      and position = new.position
-      and is_active = true
-      and id != coalesce(new.id, '00000000-0000-0000-0000-000000000000'::uuid)
-    ) then
-      raise exception 'Team already has an active % member', new.position;
-    end if;
-  end if;
-  
   return new;
 end;
 $$ language plpgsql;
@@ -261,5 +248,24 @@ execute function public.validate_member_position();
 drop trigger if exists audit_members_changes on public.members;
 create trigger audit_members_changes
 after insert or update or delete on public.members
+for each row
+execute function public.log_event_changes();
+
+
+-- ============================================================================
+-- RESOURCES SYSTEM TRIGGER FUNCTIONS
+-- ============================================================================
+
+-- 1. Auto-update updated_at timestamp for resources
+drop trigger if exists update_resources_updated_at on public.resources;
+create trigger update_resources_updated_at
+before update on public.resources
+for each row
+execute function public.handle_updated_at();
+
+-- 2. Audit log for resource changes
+drop trigger if exists audit_resources_changes on public.resources;
+create trigger audit_resources_changes
+after insert or update or delete on public.resources
 for each row
 execute function public.log_event_changes();

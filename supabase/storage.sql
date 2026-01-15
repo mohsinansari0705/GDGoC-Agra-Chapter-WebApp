@@ -71,3 +71,40 @@ using (
   bucket_id = 'member-profiles'
   and public.is_super_admin()
 );
+
+-- ============================================================================
+-- RESOURCE THUMBNAILS STORAGE RLS POLICIES
+-- ============================================================================
+
+-- Public can view/download resource thumbnails
+drop policy if exists "resource_thumbnails_public_select" on storage.objects;
+create policy "resource_thumbnails_public_select"
+on storage.objects for select
+using (bucket_id = 'resource-thumbnails');
+
+-- Only admin and super_admin can upload resource thumbnails
+drop policy if exists "resource_thumbnails_admin_insert" on storage.objects;
+create policy "resource_thumbnails_admin_insert"
+on storage.objects for insert
+with check (
+  bucket_id = 'resource-thumbnails'
+  and public.is_admin_or_above()
+);
+
+-- Only admin and super_admin can update resource thumbnails
+drop policy if exists "resource_thumbnails_admin_update" on storage.objects;
+create policy "resource_thumbnails_admin_update"
+on storage.objects for update
+using (
+  bucket_id = 'resource-thumbnails'
+  and public.is_admin_or_above()
+);
+
+-- Only admin and super_admin can delete resource thumbnails
+drop policy if exists "resource_thumbnails_admin_delete" on storage.objects;
+create policy "resource_thumbnails_admin_delete"
+on storage.objects for delete
+using (
+  bucket_id = 'resource-thumbnails'
+  and public.is_admin_or_above()
+);

@@ -141,7 +141,48 @@ create index if not exists idx_members_email on public.members(email);
 
 
 -- ============================================================================
--- BLOG POSTS & OTHER TABLES
+-- RESOURCES TABLES
+-- ============================================================================
+
+-- Resources table (learning materials, tools, articles, etc.)
+create table if not exists public.resources (
+  id uuid primary key default gen_random_uuid(),
+  title text not null,
+  description text not null,
+  link text not null,
+  category text not null check (category in (
+    'Tutorial',
+    'Documentation',
+    'Tool',
+    'Article',
+    'Video',
+    'Course',
+    'Book',
+    'Template',
+    'Other'
+  )),
+  type text check (type in ('Free', 'Paid', 'Freemium')),
+  tags text[],
+  thumbnail_url text,
+  likes_count int not null default 0,
+  views_count int not null default 0,
+  is_featured boolean default false,
+  is_active boolean default true,
+  created_at timestamptz not null default now(),
+  created_by uuid references public.admins(id) not null,
+  updated_at timestamptz default now()
+);
+-- Indexes for resources table
+create index if not exists idx_resources_category on public.resources(category);
+create index if not exists idx_resources_type on public.resources(type);
+create index if not exists idx_resources_active on public.resources(is_active) where is_active = true;
+create index if not exists idx_resources_featured on public.resources(is_featured) where is_featured = true;
+create index if not exists idx_resources_created_by on public.resources(created_by);
+create index if not exists idx_resources_likes on public.resources(likes_count desc);
+
+
+-- ============================================================================
+-- BLOG TABLES
 -- ============================================================================
 
 -- BLOG POSTS
@@ -159,6 +200,11 @@ create table if not exists public.blog_posts (
   created_by uuid references public.admins(id) not null
 );
 
+
+-- ============================================================================
+-- GALLERY TABLES
+-- ============================================================================
+
 -- GALLERY ITEMS
 create table if not exists public.gallery_items (
   id uuid primary key default gen_random_uuid(),
@@ -169,16 +215,4 @@ create table if not exists public.gallery_items (
   image_url text,
   created_at timestamptz not null default now(),
   created_by uuid references public.admins(id) not null
-);
-
--- RESOURCES (community submitted)
-create table if not exists public.resources (
-  id uuid primary key default gen_random_uuid(),
-  title text not null,
-  link text not null,
-  category text,
-  type text,
-  description text,
-  created_at timestamptz not null default now(),
-  created_by uuid references public.admins(id)
 );
