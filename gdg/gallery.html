@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gallery - GDG on Campus Sharda University</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container nav-container">
+            <div class="logo">
+                <img src="https://developers.google.com/site-assets/logo-gdg.svg" alt="GDG Logo">
+                <span class="logo-text">GDG on Campus<br><small>Sharda University</small></span>
+            </div>
+            <button class="mobile-menu-btn" id="mobileMenuBtn">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="about.html">About</a></li>
+                <li><a href="events.html">Events</a></li>
+                <li><a href="team.html">Team</a></li>
+                <li><a href="gallery.html" class="active">Gallery</a></li>
+                <li><a href="index.html#contact">Contact</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Page Header -->
+    <section class="page-header">
+        <div class="container">
+            <div class="breadcrumb">
+                <a href="index.html">Home</a> / <span>Gallery</span>
+            </div>
+            <h1 class="page-title">Our Moments</h1>
+            <p class="page-description">
+                Capturing memories from our events, workshops, and community gatherings. 
+                Experience the energy and enthusiasm of GDG on Campus!
+            </p>
+        </div>
+    </section>
+
+    <!-- Gallery Filters -->
+    <section class="gallery-filters">
+        <div class="container">
+            <div class="filters-wrapper">
+                <button class="filter-btn active" data-filter="all">All</button>
+                <button class="filter-btn" data-filter="events">Events</button>
+                <button class="filter-btn" data-filter="workshops">Workshops</button>
+                <button class="filter-btn" data-filter="hackathons">Hackathons</button>
+                <button class="filter-btn" data-filter="meetups">Meetups</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Gallery Grid -->
+    <section class="gallery-section">
+        <div class="container">
+            <div class="gallery-grid" id="galleryGrid">
+                <!-- Image 1 -->
+                <div class="gallery-item" data-category="events">
+                    <img src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800" alt="DevFest Event">
+                    <div class="gallery-overlay">
+                        <div class="gallery-info">
+                            <h3>DevFest 2024</h3>
+                            <p>Annual Developer Festival</p>
+                        </div>
+                        <button class="gallery-expand"><i class="fas fa-expand"></i></button>
+                    </div>
+                </div>
+
+                <!-- Image 2 -->
+                <div class="gallery-item" data-category="workshops">
+                    <img src="https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800" alt="Workshop">
+                    <div class="gallery-overlay">
+                        <div class="gallery-info">
+                            <h3>Android Workshop</h3>
+                            <p>Building Mobile Apps</p>
+                        </div>
+                        <button class="gallery-expand"><i class="fas fa-expand"></i></button>
+                    </div>
+                </div>
+
+                <!-- Image 3 -->
+                <div class="gallery-item tall" data-category="hackathons">
+                    <img src="https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=800" alt="Hackathon">
+                    <div class="gallery-overlay">
+                        <div class="gallery-info">
+                            <h3>HackSharda 2024</h3>
+                            <p>24-Hour Coding Marathon</p>
+                        </div>
+                        <button class="gallery-expand"><i class="fas fa-expand"></i></button>
+                    </div>
+                </div>
+
+                <!-- Image 4 -->
+                <div class="gallery-item" data-category="meetups">
+                    <img src="https://images.unsplash.com/photo-1511578314322-379afb476865?w=800" alt="Community Meetup">
+                    <div class="gallery-overlay">
+                        <div class="gallery-info">
+                            <h3>Community Meetup</h3>
+                            <p>Monthly Gathering</p>
+                        </div>
+                        <button class="gallery-expand"><i class="fas fa-expand"></i></button>
+                    </div>
+                </div>
+
+                <!-- Image 5 -->
+                <div class="gallery-item wide" data-category="events">
+                    <img src="https://images.unsplash.com/photo-1531482615713-2afd69097998?w=800" alt="Tech Talk">
+                    <div class="gallery-overlay">
+                        <div class="gallery-info">
+                            <h3>Tech Talk Series</h3>
+                            <p>Industry Experts Panel</p>
+                        </div>
+                        <button class="gallery-expand"><i class="fas fa-expand"></i></button>
+                    </div>
+                </div>
+
+                <!-- Image 6 -->
+                <div class="gallery-item" data-category="workshops">
+                    <img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800" alt="Flutter Workshop">
+                    <div class="gallery-overlay">
+                        <div class="gallery-info">
+                            <h3>Flutter Workshop</h3>
+                            <p>Cross-Platform Development</p>
+                        </div>
+                        <button class="gallery-expand"><i class="fas fa-expand"></i></button>
+                    </div>
+                </div>
+
+                <!-- Image 7 -->
+                <div class="gallery-item" data-category="events">
+                    <img src="https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=800" alt="Opening Ceremony">
+                    <div class="gallery-overlay">
+                        <div class="gallery-info">
+                            <h3>Opening Ceremony</h3>
+                            <p>GDG Launch Event</p>
+                        </div>
+                        <button class="gallery-expand"><i class="fas fa-expand"></i></button>
+                    </div>
+                </div>
+
+                <!-- Image 8 -->
+                <div class="gallery-item" data-category="workshops">
+                    <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800" alt="ML Workshop">
+                    <div class="gallery-overlay">
+                        <div class="gallery-info">
+                            <h3>ML Workshop</h3>
+                            <p>Machine Learning Basics</p>
+                        </div>
+                        <button class="gallery-expand"><i class="fas fa-expand"></i></button>
+                    </div>
+                </div>
+
+                <!-- Image 9 -->
+                <div class="gallery-item tall" data-category="meetups">
+                    <img src="https://images.unsplash.com/photo-1528605105345-5344ea20e269?w=800" alt="Team Building">
+                    <div class="gallery-overlay">
+                        <div class="gallery-info">
+                            <h3>Team Building</h3>
+                            <p>Fun Activities</p>
+                        </div>
+                        <button class="gallery-expand"><i class="fas fa-expand"></i></button>
+                    </div>
+                </div>
+
+                <!-- Image 10 -->
+                <div class="gallery-item" data-category="hackathons">
+                    <img src="https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=800" alt="Hackathon Team">
+                    <div class="gallery-overlay">
+                        <div class="gallery-info">
+                            <h3>Coding Challenge</h3>
+                            <p>Team Collaboration</p>
+                        </div>
+                        <button class="gallery-expand"><i class="fas fa-expand"></i></button>
+                    </div>
+                </div>
+
+                <!-- Image 11 -->
+                <div class="gallery-item" data-category="events">
+                    <img src="https://images.unsplash.com/photo-1475721027785-f74eccf877e2?w=800" alt="Conference">
+                    <div class="gallery-overlay">
+                        <div class="gallery-info">
+                            <h3>Tech Conference</h3>
+                            <p>Keynote Speakers</p>
+                        </div>
+                        <button class="gallery-expand"><i class="fas fa-expand"></i></button>
+                    </div>
+                </div>
+
+                <!-- Image 12 -->
+                <div class="gallery-item wide" data-category="workshops">
+                    <img src="https://images.unsplash.com/photo-1515378791036-0648a3ef77b2?w=800" alt="Web Dev Workshop">
+                    <div class="gallery-overlay">
+                        <div class="gallery-info">
+                            <h3>Web Development</h3>
+                            <p>Hands-on Coding Session</p>
+                        </div>
+                        <button class="gallery-expand"><i class="fas fa-expand"></i></button>
+                    </div>
+                </div>
+
+                <!-- Image 13 -->
+                <div class="gallery-item" data-category="meetups">
+                    <img src="https://images.unsplash.com/photo-1523580494863-6f3031224c94?w=800" alt="Networking">
+                    <div class="gallery-overlay">
+                        <div class="gallery-info">
+                            <h3>Networking Session</h3>
+                            <p>Connect & Collaborate</p>
+                        </div>
+                        <button class="gallery-expand"><i class="fas fa-expand"></i></button>
+                    </div>
+                </div>
+
+                <!-- Image 14 -->
+                <div class="gallery-item" data-category="events">
+                    <img src="https://images.unsplash.com/photo-1505373877841-8d25f7d46678?w=800" alt="Awards">
+                    <div class="gallery-overlay">
+                        <div class="gallery-info">
+                            <h3>Awards Ceremony</h3>
+                            <p>Recognizing Excellence</p>
+                        </div>
+                        <button class="gallery-expand"><i class="fas fa-expand"></i></button>
+                    </div>
+                </div>
+
+                <!-- Image 15 -->
+                <div class="gallery-item" data-category="hackathons">
+                    <img src="https://images.unsplash.com/photo-1504384764586-bb4cdc1707b0?w=800" alt="Late Night Coding">
+                    <div class="gallery-overlay">
+                        <div class="gallery-info">
+                            <h3>Late Night Hacking</h3>
+                            <p>Hackathon Vibes</p>
+                        </div>
+                        <button class="gallery-expand"><i class="fas fa-expand"></i></button>
+                    </div>
+                </div>
+
+                <!-- Image 16 -->
+                <div class="gallery-item" data-category="workshops">
+                    <img src="https://images.unsplash.com/photo-1517048676732-d65bc937f952?w=800" alt="Group Learning">
+                    <div class="gallery-overlay">
+                        <div class="gallery-info">
+                            <h3>Group Learning</h3>
+                            <p>Collaborative Workshop</p>
+                        </div>
+                        <button class="gallery-expand"><i class="fas fa-expand"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Image Modal -->
+    <div class="modal" id="imageModal">
+        <span class="modal-close">&times;</span>
+        <img class="modal-content" id="modalImage">
+        <div class="modal-caption" id="modalCaption"></div>
+        <button class="modal-prev"><i class="fas fa-chevron-left"></i></button>
+        <button class="modal-next"><i class="fas fa-chevron-right"></i></button>
+    </div>
+
+    <!-- Stats Section -->
+    <section class="gallery-stats">
+        <div class="container">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <i class="fas fa-camera"></i>
+                    <h3>500+</h3>
+                    <p>Photos Captured</p>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-calendar-check"></i>
+                    <h3>50+</h3>
+                    <p>Events Documented</p>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-users"></i>
+                    <h3>1000+</h3>
+                    <p>Memories Shared</p>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-heart"></i>
+                    <h3>∞</h3>
+                    <p>Community Love</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <img src="https://developers.google.com/site-assets/logo-gdg.svg" alt="GDG Logo" class="footer-logo">
+                    <p class="footer-description">
+                        Google Developer Groups on Campus at Sharda University. 
+                        Building a community of passionate developers.
+                    </p>
+                    <div class="social-links">
+                        <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                        <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin"></i></a>
+                        <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                        <a href="#" aria-label="GitHub"><i class="fab fa-github"></i></a>
+                        <a href="#" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+
+                <div class="footer-section">
+                    <h3>Quick Links</h3>
+                    <ul class="footer-links">
+                        <li><a href="about.html">About Us</a></li>
+                        <li><a href="events.html">Events</a></li>
+                        <li><a href="team.html">Our Team</a></li>
+                        <li><a href="gallery.html">Gallery</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <h3>Resources</h3>
+                    <ul class="footer-links">
+                        <li><a href="https://developers.google.com" target="_blank">Google Developers</a></li>
+                        <li><a href="https://gdg.community.dev" target="_blank">GDG Community</a></li>
+                        <li><a href="https://developers.google.com/learn" target="_blank">Learning Paths</a></li>
+                        <li><a href="#">Code of Conduct</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <h3>Contact</h3>
+                    <ul class="footer-contact">
+                        <li><i class="fas fa-envelope"></i> gdg@sharda.ac.in</li>
+                        <li><i class="fas fa-map-marker-alt"></i> Sharda University, Greater Noida</li>
+                        <li><i class="fas fa-phone"></i> +91 XXX XXX XXXX</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>&copy; 2024 GDG on Campus - Sharda University. All rights reserved.</p>
+                <div class="footer-legal">
+                    <a href="#">Privacy Policy</a>
+                    <a href="#">Terms of Service</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <button class="scroll-to-top" id="scrollToTop">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <script src="script.js"></script>
+</body>
+</html>

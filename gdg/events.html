@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Events - GDG on Campus Sharda University</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container nav-container">
+            <div class="logo">
+                <img src="https://developers.google.com/site-assets/logo-gdg.svg" alt="GDG Logo">
+                <span class="logo-text">GDG on Campus<br><small>Sharda University</small></span>
+            </div>
+            <button class="mobile-menu-btn" id="mobileMenuBtn">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="about.html">About</a></li>
+                <li><a href="events.html" class="active">Events</a></li>
+                <li><a href="team.html">Team</a></li>
+                <li><a href="gallery.html">Gallery</a></li>
+                <li><a href="index.html#contact">Contact</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Page Header -->
+    <section class="page-header">
+        <div class="container">
+            <div class="breadcrumb">
+                <a href="index.html">Home</a> / <span>Events</span>
+            </div>
+            <h1 class="page-title">Our Events</h1>
+            <p class="page-description">
+                Join us for workshops, tech talks, hackathons, and community meetups. 
+                Learn, build, and connect with fellow developers.
+            </p>
+        </div>
+    </section>
+
+    <!-- Event Filters -->
+    <section class="event-filters">
+        <div class="container">
+            <div class="filters-wrapper">
+                <div class="filter-group">
+                    <button class="filter-btn active" data-filter="all">All Events</button>
+                    <button class="filter-btn" data-filter="upcoming">Upcoming</button>
+                    <button class="filter-btn" data-filter="workshop">Workshops</button>
+                    <button class="filter-btn" data-filter="hackathon">Hackathons</button>
+                    <button class="filter-btn" data-filter="talk">Tech Talks</button>
+                    <button class="filter-btn" data-filter="past">Past Events</button>
+                </div>
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Search events..." id="eventSearch">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Events Grid -->
+    <section class="events-section">
+        <div class="container">
+            <!-- Upcoming Events -->
+            <div class="events-category">
+                <h2 class="category-title">
+                    <i class="far fa-calendar-plus"></i> Upcoming Events
+                </h2>
+                <div class="events-grid" id="eventsGrid">
+                    <!-- Event Card 1 -->
+                    <div class="event-card featured" data-category="upcoming hackathon">
+                        <div class="event-badge">Featured</div>
+                        <div class="event-image">
+                            <img src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800" alt="DevFest 2024">
+                            <div class="event-overlay">
+                                <a href="event-detail.html" class="btn btn-small">View Details</a>
+                            </div>
+                        </div>
+                        <div class="event-content">
+                            <div class="event-meta">
+                                <span class="event-date">
+                                    <i class="far fa-calendar"></i> January 15, 2025
+                                </span>
+                                <span class="event-type type-hackathon">Hackathon</span>
+                            </div>
+                            <h3 class="event-title">DevFest Sharda 2025</h3>
+                            <p class="event-description">
+                                Join us for our biggest developer festival of the year! Experience workshops, 
+                                tech talks, and networking opportunities with industry experts.
+                            </p>
+                            <div class="event-details">
+                                <span><i class="fas fa-map-marker-alt"></i> Sharda University Campus</span>
+                                <span><i class="fas fa-clock"></i> 9:00 AM - 6:00 PM</span>
+                            </div>
+                            <div class="event-footer">
+                                <div class="event-attendees">
+                                    <div class="avatar-group">
+                                        <img src="https://i.pravatar.cc/150?img=1" alt="Attendee">
+                                        <img src="https://i.pravatar.cc/150?img=2" alt="Attendee">
+                                        <img src="https://i.pravatar.cc/150?img=3" alt="Attendee">
+                                        <span class="avatar-count">+127</span>
+                                    </div>
+                                    <span class="attendee-text">going</span>
+                                </div>
+                                <a href="event-detail.html" class="btn btn-primary">Register Now</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Event Card 2 -->
+                    <div class="event-card" data-category="upcoming workshop">
+                        <div class="event-image">
+                            <img src="https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800" alt="Android Workshop">
+                            <div class="event-overlay">
+                                <a href="event-detail.html" class="btn btn-small">View Details</a>
+                            </div>
+                        </div>
+                        <div class="event-content">
+                            <div class="event-meta">
+                                <span class="event-date">
+                                    <i class="far fa-calendar"></i> January 22, 2025
+                                </span>
+                                <span class="event-type type-workshop">Workshop</span>
+                            </div>
+                            <h3 class="event-title">Android Development Bootcamp</h3>
+                            <p class="event-description">
+                                Learn Android development from scratch with hands-on projects. Build your 
+                                first Android app using Kotlin and Jetpack Compose.
+                            </p>
+                            <div class="event-details">
+                                <span><i class="fas fa-map-marker-alt"></i> Online & Campus</span>
+                                <span><i class="fas fa-clock"></i> 2:00 PM - 5:00 PM</span>
+                            </div>
+                            <div class="event-footer">
+                                <div class="event-attendees">
+                                    <div class="avatar-group">
+                                        <img src="https://i.pravatar.cc/150?img=4" alt="Attendee">
+                                        <img src="https://i.pravatar.cc/150?img=5" alt="Attendee">
+                                        <span class="avatar-count">+45</span>
+                                    </div>
+                                    <span class="attendee-text">going</span>
+                                </div>
+                                <a href="event-detail.html" class="btn btn-primary">Register Now</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Event Card 3 -->
+                    <div class="event-card" data-category="upcoming talk">
+                        <div class="event-image">
+                            <img src="https://images.unsplash.com/photo-1531482615713-2afd69097998?w=800" alt="Tech Talk">
+                            <div class="event-overlay">
+                                <a href="event-detail.html" class="btn btn-small">View Details</a>
+                            </div>
+                        </div>
+                        <div class="event-content">
+                            <div class="event-meta">
+                                <span class="event-date">
+                                    <i class="far fa-calendar"></i> January 29, 2025
+                                </span>
+                                <span class="event-type type-talk">Tech Talk</span>
+                            </div>
+                            <h3 class="event-title">Cloud Computing & Future Tech</h3>
+                            <p class="event-description">
+                                Explore the latest trends in cloud computing, serverless architecture, 
+                                and emerging technologies with industry experts.
+                            </p>
+                            <div class="event-details">
+                                <span><i class="fas fa-map-marker-alt"></i> Virtual Event</span>
+                                <span><i class="fas fa-clock"></i> 6:00 PM - 8:00 PM</span>
+                            </div>
+                            <div class="event-footer">
+                                <div class="event-attendees">
+                                    <div class="avatar-group">
+                                        <img src="https://i.pravatar.cc/150?img=6" alt="Attendee">
+                                        <img src="https://i.pravatar.cc/150?img=7" alt="Attendee">
+                                        <img src="https://i.pravatar.cc/150?img=8" alt="Attendee">
+                                        <span class="avatar-count">+89</span>
+                                    </div>
+                                    <span class="attendee-text">going</span>
+                                </div>
+                                <a href="event-detail.html" class="btn btn-primary">Register Now</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Event Card 4 -->
+                    <div class="event-card" data-category="upcoming workshop">
+                        <div class="event-image">
+                            <img src="https://images.unsplash.com/photo-1515378791036-0648a3ef77b2?w=800" alt="Web Dev">
+                            <div class="event-overlay">
+                                <a href="event-detail.html" class="btn btn-small">View Details</a>
+                            </div>
+                        </div>
+                        <div class="event-content">
+                            <div class="event-meta">
+                                <span class="event-date">
+                                    <i class="far fa-calendar"></i> February 5, 2025
+                                </span>
+                                <span class="event-type type-workshop">Workshop</span>
+                            </div>
+                            <h3 class="event-title">Modern Web Development with React</h3>
+                            <p class="event-description">
+                                Master React.js and build dynamic web applications. Learn hooks, context API, 
+                                and modern state management techniques.
+                            </p>
+                            <div class="event-details">
+                                <span><i class="fas fa-map-marker-alt"></i> Lab B-301</span>
+                                <span><i class="fas fa-clock"></i> 10:00 AM - 4:00 PM</span>
+                            </div>
+                            <div class="event-footer">
+                                <div class="event-attendees">
+                                    <div class="avatar-group">
+                                        <img src="https://i.pravatar.cc/150?img=9" alt="Attendee">
+                                        <img src="https://i.pravatar.cc/150?img=10" alt="Attendee">
+                                        <span class="avatar-count">+67</span>
+                                    </div>
+                                    <span class="attendee-text">going</span>
+                                </div>
+                                <a href="event-detail.html" class="btn btn-primary">Register Now</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Event Card 5 -->
+                    <div class="event-card" data-category="upcoming workshop">
+                        <div class="event-image">
+                            <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800" alt="AI ML">
+                            <div class="event-overlay">
+                                <a href="event-detail.html" class="btn btn-small">View Details</a>
+                            </div>
+                        </div>
+                        <div class="event-content">
+                            <div class="event-meta">
+                                <span class="event-date">
+                                    <i class="far fa-calendar"></i> February 12, 2025
+                                </span>
+                                <span class="event-type type-workshop">Workshop</span>
+                            </div>
+                            <h3 class="event-title">Introduction to Machine Learning</h3>
+                            <p class="event-description">
+                                Get started with ML fundamentals, understand algorithms, and build your 
+                                first prediction model with Python and TensorFlow.
+                            </p>
+                            <div class="event-details">
+                                <span><i class="fas fa-map-marker-alt"></i> Online</span>
+                                <span><i class="fas fa-clock"></i> 3:00 PM - 6:00 PM</span>
+                            </div>
+                            <div class="event-footer">
+                                <div class="event-attendees">
+                                    <div class="avatar-group">
+                                        <img src="https://i.pravatar.cc/150?img=11" alt="Attendee">
+                                        <img src="https://i.pravatar.cc/150?img=12" alt="Attendee">
+                                        <img src="https://i.pravatar.cc/150?img=13" alt="Attendee">
+                                        <span class="avatar-count">+102</span>
+                                    </div>
+                                    <span class="attendee-text">going</span>
+                                </div>
+                                <a href="event-detail.html" class="btn btn-primary">Register Now</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Event Card 6 -->
+                    <div class="event-card" data-category="upcoming hackathon">
+                        <div class="event-image">
+                            <img src="https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=800" alt="Hackathon">
+                            <div class="event-overlay">
+                                <a href="event-detail.html" class="btn btn-small">View Details</a>
+                            </div>
+                        </div>
+                        <div class="event-content">
+                            <div class="event-meta">
+                                <span class="event-date">
+                                    <i class="far fa-calendar"></i> February 19-20, 2025
+                                </span>
+                                <span class="event-type type-hackathon">Hackathon</span>
+                            </div>
+                            <h3 class="event-title">24-Hour Code Sprint Challenge</h3>
+                            <p class="event-description">
+                                Test your skills in our intensive 24-hour hackathon! Build innovative 
+                                solutions and compete for amazing prizes.
+                            </p>
+                            <div class="event-details">
+                                <span><i class="fas fa-map-marker-alt"></i> Main Auditorium</span>
+                                <span><i class="fas fa-clock"></i> 24 Hours</span>
+                            </div>
+                            <div class="event-footer">
+                                <div class="event-attendees">
+                                    <div class="avatar-group">
+                                        <img src="https://i.pravatar.cc/150?img=14" alt="Attendee">
+                                        <img src="https://i.pravatar.cc/150?img=15" alt="Attendee">
+                                        <img src="https://i.pravatar.cc/150?img=16" alt="Attendee">
+                                        <span class="avatar-count">+234</span>
+                                    </div>
+                                    <span class="attendee-text">going</span>
+                                </div>
+                                <a href="event-detail.html" class="btn btn-primary">Register Now</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Past Events -->
+            <div class="events-category" style="margin-top: 60px;">
+                <h2 class="category-title">
+                    <i class="far fa-calendar-check"></i> Past Events
+                </h2>
+                <div class="events-grid">
+                    <!-- Past Event 1 -->
+                    <div class="event-card past-event" data-category="past workshop">
+                        <div class="event-image">
+                            <img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800" alt="Past Event">
+                            <div class="past-badge">Completed</div>
+                        </div>
+                        <div class="event-content">
+                            <div class="event-meta">
+                                <span class="event-date">
+                                    <i class="far fa-calendar"></i> December 15, 2024
+                                </span>
+                                <span class="event-type type-workshop">Workshop</span>
+                            </div>
+                            <h3 class="event-title">Flutter Workshop 2024</h3>
+                            <p class="event-description">
+                                Successfully completed workshop on Flutter development with 150+ participants.
+                            </p>
+                            <div class="event-stats">
+                                <span><i class="fas fa-users"></i> 150 Attendees</span>
+                                <span><i class="fas fa-star"></i> 4.8/5 Rating</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Past Event 2 -->
+                    <div class="event-card past-event" data-category="past hackathon">
+                        <div class="event-image">
+                            <img src="https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=800" alt="Past Event">
+                            <div class="past-badge">Completed</div>
+                        </div>
+                        <div class="event-content">
+                            <div class="event-meta">
+                                <span class="event-date">
+                                    <i class="far fa-calendar"></i> November 20, 2024
+                                </span>
+                                <span class="event-type type-hackathon">Hackathon</span>
+                            </div>
+                            <h3 class="event-title">HackSharda 2024</h3>
+                            <p class="event-description">
+                                Amazing 36-hour hackathon with innovative projects and great team participation.
+                            </p>
+                            <div class="event-stats">
+                                <span><i class="fas fa-users"></i> 200 Attendees</span>
+                                <span><i class="fas fa-trophy"></i> 15 Projects</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Past Event 3 -->
+                    <div class="event-card past-event" data-category="past talk">
+                        <div class="event-image">
+                            <img src="https://images.unsplash.com/photo-1475721027785-f74eccf877e2?w=800" alt="Past Event">
+                            <div class="past-badge">Completed</div>
+                        </div>
+                        <div class="event-content">
+                            <div class="event-meta">
+                                <span class="event-date">
+                                    <i class="far fa-calendar"></i> October 10, 2024
+                                </span>
+                                <span class="event-type type-talk">Tech Talk</span>
+                            </div>
+                            <h3 class="event-title">Career in Tech Industry</h3>
+                            <p class="event-description">
+                                Inspiring tech talk by industry leaders on career paths and opportunities.
+                            </p>
+                            <div class="event-stats">
+                                <span><i class="fas fa-users"></i> 300 Attendees</span>
+                                <span><i class="fas fa-star"></i> 4.9/5 Rating</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="container">
+            <div class="cta-content">
+                <h2>Want to Host an Event?</h2>
+                <p>Have an idea for a workshop or tech talk? We'd love to hear from you!</p>
+                <a href="index.html#contact" class="btn btn-primary">Get in Touch</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <img src="https://developers.google.com/site-assets/logo-gdg.svg" alt="GDG Logo" class="footer-logo">
+                    <p class="footer-description">
+                        Google Developer Groups on Campus at Sharda University. 
+                        Building a community of passionate developers.
+                    </p>
+                    <div class="social-links">
+                        <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                        <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin"></i></a>
+                        <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                        <a href="#" aria-label="GitHub"><i class="fab fa-github"></i></a>
+                        <a href="#" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+
+                <div class="footer-section">
+                    <h3>Quick Links</h3>
+                    <ul class="footer-links">
+                        <li><a href="about.html">About Us</a></li>
+                        <li><a href="events.html">Events</a></li>
+                        <li><a href="team.html">Our Team</a></li>
+                        <li><a href="gallery.html">Gallery</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <h3>Resources</h3>
+                    <ul class="footer-links">
+                        <li><a href="https://developers.google.com" target="_blank">Google Developers</a></li>
+                        <li><a href="https://gdg.community.dev" target="_blank">GDG Community</a></li>
+                        <li><a href="https://developers.google.com/learn" target="_blank">Learning Paths</a></li>
+                        <li><a href="#">Code of Conduct</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <h3>Contact</h3>
+                    <ul class="footer-contact">
+                        <li><i class="fas fa-envelope"></i> gdg@sharda.ac.in</li>
+                        <li><i class="fas fa-map-marker-alt"></i> Sharda University, Greater Noida</li>
+                        <li><i class="fas fa-phone"></i> +91 XXX XXX XXXX</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>&copy; 2024 GDG on Campus - Sharda University. All rights reserved.</p>
+                <div class="footer-legal">
+                    <a href="#">Privacy Policy</a>
+                    <a href="#">Terms of Service</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <button class="scroll-to-top" id="scrollToTop">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <script src="script.js"></script>
+</body>
+</html>

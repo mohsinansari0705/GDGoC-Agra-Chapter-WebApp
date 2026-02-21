@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quick Start Guide - GDG Website</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #4285F4;
+            margin-bottom: 10px;
+            font-size: 2.5rem;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+        }
+        .section {
+            margin-bottom: 40px;
+        }
+        h2 {
+            color: #333;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #4285F4;
+            display: inline-block;
+        }
+        .page-links {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .page-link {
+            display: block;
+            padding: 20px;
+            background: linear-gradient(135deg, #4285F4, #34A853);
+            color: white;
+            text-decoration: none;
+            border-radius: 12px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 4px 15px rgba(66, 133, 244, 0.3);
+        }
+        .page-link:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(66, 133, 244, 0.4);
+        }
+        .page-link h3 {
+            font-size: 1.2rem;
+            margin-bottom: 5px;
+        }
+        .page-link p {
+            font-size: 0.9rem;
+            opacity: 0.95;
+        }
+        .checklist {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            border-left: 4px solid #34A853;
+        }
+        .checklist li {
+            margin-bottom: 12px;
+            padding-left: 10px;
+            line-height: 1.6;
+        }
+        .checklist li::marker {
+            content: '✓ ';
+            color: #34A853;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+        .info-box {
+            background: #e8f4fd;
+            padding: 20px;
+            border-radius: 12px;
+            border-left: 4px solid #4285F4;
+            margin: 20px 0;
+        }
+        .info-box strong {
+            color: #4285F4;
+            display: block;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+        .warning-box {
+            background: #fff4e5;
+            padding: 20px;
+            border-radius: 12px;
+            border-left: 4px solid #FBBC04;
+            margin: 20px 0;
+        }
+        .warning-box strong {
+            color: #FBBC04;
+            display: block;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+        code {
+            background: #f5f5f5;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            color: #EA4335;
+        }
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .feature {
+            background: linear-gradient(135deg, #f8f9fa, #e8eaed);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .feature-icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px solid #e8eaed;
+            color: #666;
+        }
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background: #4285F4;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            margin-top: 15px;
+            transition: background 0.3s ease;
+        }
+        .btn:hover {
+            background: #1967d2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 GDG Website Quick Start</h1>
+        <p class="subtitle">Welcome to your new GDG on Campus website!</p>
+
+        <div class="section">
+            <h2>📄 Available Pages</h2>
+            <div class="page-links">
+                <a href="index.html" class="page-link">
+                    <h3>🏠 Home</h3>
+                    <p>Main landing page</p>
+                </a>
+                <a href="about.html" class="page-link">
+                    <h3>ℹ️ About</h3>
+                    <p>Mission & vision</p>
+                </a>
+                <a href="events.html" class="page-link">
+                    <h3>📅 Events</h3>
+                    <p>All events listing</p>
+                </a>
+                <a href="event-detail.html" class="page-link">
+                    <h3>🎯 Event Detail</h3>
+                    <p>Detailed event page</p>
+                </a>
+                <a href="team.html" class="page-link">
+                    <h3>👥 Team</h3>
+                    <p>Meet our members</p>
+                </a>
+                <a href="gallery.html" class="page-link">
+                    <h3>📸 Gallery</h3>
+                    <p>Photo showcase</p>
+                </a>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>✨ Key Features</h2>
+            <div class="features">
+                <div class="feature">
+                    <div class="feature-icon">📱</div>
+                    <strong>Responsive</strong>
+                    <p>Works on all devices</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">🎨</div>
+                    <strong>Google Theme</strong>
+                    <p>Material Design colors</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">⚡</div>
+                    <strong>Fast & Modern</strong>
+                    <p>Smooth animations</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">🔍</div>
+                    <strong>Search & Filter</strong>
+                    <p>Easy navigation</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📝 Customization Checklist</h2>
+            <div class="checklist">
+                <ul>
+                    <li>Replace <code>Sharda University</code> with your university name throughout all files</li>
+                    <li>Update contact email <code>gdg@sharda.ac.in</code> with your actual email</li>
+                    <li>Replace demo images with your actual event and team photos</li>
+                    <li>Update social media links in footer sections</li>
+                    <li>Add your actual events in <code>events.html</code></li>
+                    <li>Update team members in <code>team.html</code> with real names and photos</li>
+                    <li>Customize About page with your chapter's history</li>
+                    <li>Add real gallery images in <code>gallery.html</code></li>
+                    <li>Update stats and numbers to match your chapter</li>
+                    <li>Replace logo URLs with your chapter's logo</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="info-box">
+            <strong>💡 Pro Tip</strong>
+            The website uses external image sources (Unsplash and Pravatar) for demo purposes. 
+            For best performance and reliability, replace these with your own hosted images.
+        </div>
+
+        <div class="section">
+            <h2>🎨 Color Customization</h2>
+            <p>All colors are defined in <code>styles.css</code> at the top. Modify these CSS variables to change the theme:</p>
+            <div class="info-box">
+                <code>--google-blue: #4285F4;</code><br>
+                <code>--google-red: #EA4335;</code><br>
+                <code>--google-yellow: #FBBC04;</code><br>
+                <code>--google-green: #34A853;</code>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🚀 How to Use</h2>
+            <div class="warning-box">
+                <strong>⚠️ Important</strong>
+                This is a static HTML website. Just open <code>index.html</code> in any web browser to view!
+            </div>
+            
+            <h3 style="margin: 20px 0 10px 0;">Method 1: Direct Opening</h3>
+            <p>Double-click on <code>index.html</code> to open in your default browser.</p>
+            
+            <h3 style="margin: 20px 0 10px 0;">Method 2: VS Code Live Server</h3>
+            <ol style="line-height: 2; margin-left: 20px;">
+                <li>Install "Live Server" extension in VS Code</li>
+                <li>Right-click on <code>index.html</code></li>
+                <li>Select "Open with Live Server"</li>
+            </ol>
+        </div>
+
+        <div class="section">
+            <h2>📁 File Structure</h2>
+            <div class="info-box">
+                <strong>HTML Files:</strong><br>
+                • <code>index.html</code> - Home page<br>
+                • <code>about.html</code> - About page<br>
+                • <code>events.html</code> - Events listing<br>
+                • <code>event-detail.html</code> - Event details<br>
+                • <code>team.html</code> - Team members<br>
+                • <code>gallery.html</code> - Photo gallery<br><br>
+                
+                <strong>Assets:</strong><br>
+                • <code>styles.css</code> - All styling<br>
+                • <code>script.js</code> - All JavaScript<br>
+                • <code>README.md</code> - Documentation
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🔧 Next Steps</h2>
+            <div class="checklist">
+                <ol style="line-height: 2; margin-left: 20px;">
+                    <li>Review all pages and familiarize yourself with the structure</li>
+                    <li>Replace placeholder content with your chapter's information</li>
+                    <li>Upload your actual photos and update image URLs</li>
+                    <li>Test on different devices (mobile, tablet, desktop)</li>
+                    <li>Deploy to a web hosting service or GitHub Pages</li>
+                </ol>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>💻 Deployment Options</h2>
+            <ul style="line-height: 2; margin-left: 20px;">
+                <li><strong>GitHub Pages:</strong> Free hosting for static websites</li>
+                <li><strong>Vercel:</strong> Easy deployment with GitHub integration</li>
+                <li><strong>Netlify:</strong> Another great option for static sites</li>
+                <li><strong>Firebase Hosting:</strong> Google's hosting solution</li>
+            </ul>
+        </div>
+
+        <div class="footer">
+            <p>Built with ❤️ for GDG on Campus</p>
+            <p style="margin-top: 10px;">Need help? Check the <code>README.md</code> file for detailed documentation</p>
+            <a href="index.html" class="btn">🚀 Start Exploring</a>
+        </div>
+    </div>
+</body>
+</html>
